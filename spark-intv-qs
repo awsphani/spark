@@ -317,12 +317,12 @@ supress = lock.acquire()
 
 
 1. Compare MapReduce and Spark?
-Criteria	MapReduce	Spark
-Processing Speeds	Good	Excellent (up to 100 times faster)
-Data caching	Hard disk	In-memory
-Perform iterative jobs	Average	Excellent
-Independent of Hadoop	No	Yes
-Machine learning applications	Average	Excellent
+Criteria	              ----MapReduce	-----------Spark
+Processing Speeds	    ----Good--------	    Excellent (up to 100 times faster)
+Data caching	        ----Hard disk	--------In-memory
+Perform iterative jobs----Average	  --------Excellent
+Independent of Hadoop	----No---------------	Yes
+Machine learning applications	---Average	--------Excellent
 2. What is Apache Spark?
 Spark is a fast, easy-to-use and flexible data processing framework. It has an advanced execution engine supporting cyclic data  flow and in-memory computing. Spark can run on Hadoop, standalone or in the cloud and is capable of accessing diverse data sources including HDFS, HBase, Cassandra and others.
 

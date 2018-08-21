@@ -148,4 +148,26 @@ df.dropDuplicates() ->drops dups
 date and timestamps
 
 
+from pyspark.sql import SparkSession
+
+from pyspark.sql import dayofmonth,hour,dayofyear,month,year,weekofyear,format_number,date_format
+
+spark=SparkSession.builder.appName("test1").getOrCreate()
+
+df=spark.read.csv('stock.csv',inferSchema=True,header=True)
+df.printSchema()-> has cols like Date,Low,Close,Open,Volume,Adj Close
+
+df.select(dayofmonth(df['Date'])).show()
+
+#get avg closing price per year
+
+df.select(year(df['Date'])).show()
+new_df=df.withColumn("Year",year(df['Date'])).show()
+res=new_df.groupBy("Year").mean().select(['Year','avg(Close)'])
+res1=res.withColumnRenamed("avg(Close)","Avg Close Price")
+
+res1.select(["Year",format_number("Avg Close Price",2).alias("Avg Close")])
+
+
+
 

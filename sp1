@@ -1,0 +1,151 @@
+##spark DF 
+
+from pyspark.sql import SparkSession
+spark=SparkSession.builder.appName("test").getOrCreate()
+df=spark.read.json('people.json')
+df.show()
+df.printSchema()
+df.columns . -> ['col1','col2'] #gives colnames
+df.describe()- describes the df
+df.describe().show() ->give stats of df like count mean stddev min max
+
+
+
+from pyspark.sql.types import (StructType, StructField, 
+                               StringType, ArrayType,IntegerType)
+
+data_schema=[StructField('age',Integertype(),True),
+             StructField('age',Stringtype(),True)]        
+
+final_struc= StructType(fields=data_schema)
+
+df=spark.read.json('people.json',schema=final_struc)
+
+df.printSchema()
+
+df['age']-> gives column
+
+#create a df from selecting some cols of existing df
+
+df1= df.select('age') or df1= df.select(['age','name'])
+df1.show()
+
+df.head(2)-> gives top 2 rows in a list
+df.head(2)[0]-> gives first row using index
+
+#create new col and returns new df
+
+df.withColumn('double_age', df['age']*2)
+
+dag_date='04-05-2018'
+df_final.withColumn('process_dt', lit(dag_date))
+
+#rename col
+
+df.withColumnRenamed('age', 'new_age')
+
+df.createOrReplaceTempView('people')
+res1=spark.sql("select count(*) from people where age=30")
+
+----
+
+from pyspark.sql import SparkSession
+spark=SparkSession.builder.appName("test1").getOrCreate()
+
+df=spark.read.csv('stock.csv',inferSchema=True,header=True)
+df.printSchema()-> has cols like Low,Close,Open,Volume,Adj Close
+
+df.head(3)[0]
+
+#get all rows having close<500
+
+df.filter("Close <500").show() ->using sql style
+or 
+df.filter(df['Close'] < 500).show()-> using dfs style
+
+df.filter("Close <500").select(['Open','Close']).show() -> get all opens having Close <500
+
+renamecols_alias = df.select(
+col('Close').alias('Close_Price'),
+col('Open').alias('Open_Price')
+)
+
+#enclose conditions in parathenis use & or | or ! operators
+df.filter((df['Close'] < 500) & (df['Close'] >200)).show()
+
+result=df.filter(df['low']==500).collect() ->gives collection of rows
+
+#get first row
+row= result[0]
+
+row.asDict() -> row to dict
+row.asDict()['Volume']
+
+
+---
+
+
+groupby and agg funcs
+
+
+from pyspark.sql import SparkSession
+spark=SparkSession.builder.appName("test1").getOrCreate()
+
+df=spark.read.csv('sales.csv',inferSchema=True,header=True) -> has Company Person Sales cols
+
+df.groupBy("Company")
+df.groupBy("Company").mean().show() 
+df.groupBy("Company").min().show()
+df.groupBy("Company").count().show()
+#get sum of all sales, pass col name and function as dict
+df.agg({'Sales':'sum'}).show() ->sum of all sales
+
+df.agg({'Sales':'max'}).show() -> max from all sales
+
+group_data=df.groupBy('Company')
+group_data.agg({'Sales':'min'}).show() -> min from each group
+
+
+#can do using sql funcs also
+
+from pyspark.sql.functions import countDistinct,avg,stddev
+
+df.select(countDistinct('Sales')).show()
+df.select(avg('Sales').alias('Avg_Sales)).show()
+sales_std=df.select(stddev('Sales').alias('StdDev_Sales')).show()
+from pyspark.sql.functions import format_number
+sales_std=df.select(format_number('StdDev_Sales',2).alias('std')).show()
+
+df.orderBy("Sales") ->ascending order
+
+df.orderBy(df['Sales].desc()).show()
+
+------------
+#missing data
+
+from pyspark.sql import SparkSession
+spark=SparkSession.builder.appName("Containsnull").getOrCreate()
+
+df=spark.read.csv('contiansnull.csv',inferSchema=True,header=True) -> has Id name Sales cols
+
+df.na.drop().show() -> drops any row having nulls in the columns
+
+df.na.drop(thresh=2).show() -> drops any row having 2 nulls in the columns
+
+df.na.drop('any').show() -> drops any row having any null value in the columns
+
+df.na.drop('all').show() -> drops any row having all null value in the all columns
+
+df.na.drop(subset=['Sales']).show() -> drops any row having  null value in the Sales columns
+
+df.na.fill().show()
+
+df.na.fill('No Name',subset=['Name']).show()
+
+df.dropDuplicates() ->drops dups
+----
+
+date and timestamps
+
+
+

@@ -2,15 +2,15 @@ https://mindmajix.com/apache-spark-interview-questions
 
 Q) Apache Spark Vs Hadoop
 Spark Vs Hadoop
-Features	Spark	Hadoop
-Data processing	Part of hadoop, hence batch processing	Batch Processing even for high volumes
-Streaming Engine	Apache spark straming - micro batches	Map-Reduce
-Data Flow	Direct Acyclic Graph-DAG	Map-Reduce
-Computation Model	Collect and process	Map-Reduce batch oriented model
-Performance	Slow due to batch processing	Slow due to batch processing
-Memory Management	Automatic memory management in latest release	Dynamic and static - Configurable
-Fault Tolerance	Recovery available without extra code	Highly fault tolerant due to Map-Reduce
-Scalability	Highly scalable - sSpark Cluster(8000 Nodes)	Highly scalable - Produces large number of nodes
+Features	-------------------------Spark	-------------------------------------------------Hadoop
+Data processing	--------------Part of hadoop, hence batch processing---------	Batch Processing even for high volumes
+Streaming Engin---------------Apache spark straming  micro batches	----------Map-Reduce
+Data Flow	Direct------------- Acyclic Graph-DAG	------------------------------Map-Reduce
+Computation Model------------	Collect and process	----------------------------Map-Reduce batch oriented model
+Performance	------------------Slow due to batch processing-------------------	Slow due to batch processing
+Memory Management-----------	Automatic memory management in latest release---	Dynamic and static - Configurable
+Fault Tolerance	--------------Recovery available without extra code	----------Highly fault tolerant due to Map-Reduce
+Scalability	-----------------Highly scalable - sSpark Cluster(8000 Nodes)	----Highly scalable - Produces large number of nodes
 Q1) What is Spark?
 
 Spark is a parallel data processing framework. It allows to develop fast, unified big data application combine batch, streaming and interactive analytics.

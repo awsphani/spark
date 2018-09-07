@@ -1,0 +1,61 @@
+#Scala is JVM based functional programming language.
+Spark is completely developed using Scala
+On top of Spark (used for data processing), Scala also have frameworks such as Play to develop web applications
+
+REPL – Read, Evaluate, Print and Loop
+Use scala command to launch REPL
+:quit to come out
+Ctrl+l to clear the screen
+
+
+
+download and install jdk 8 macos
+download intellj community edition
+ ->set sarcula thema,default plugins, featured plugins(scala install ans ide features trainer install)
+start using intellij ide -> should see scala on left panel and sbt on right; if you done see scal, hit cancel
+configure->plugins->browse repositories-> search scala and install
+
+
+
+new project: select scala from left panel and select sbt on right andd next
+
+name: spark2demo
+jdk 1.8
+sbt 1.2.1
+scala 2.12.6 finish
+
+src>main>new scala class>HW
+
+object HW {
+
+  def main(args: Array[String]): Unit = {
+    println("Hello World")
+    println("Hello World:"+ args(0))
+  }
+}
+
+run->edit config-> pass program argument for args(0) value
+
+
+sbt download and install
+https://www.scala-sbt.org/download.html
+http://biercoff.com/easy-steps-to-install-scala-and-sbt-on-your-mac/
+1.2.1
+
+right clik on project on left panel>copy path
+
+/Users/pkum60/IdeaProjects/spark2demo
+
+terminal cd /Users/pkum60/IdeaProjects/spark2demo
+
+you will have src and build.sbt folders
+
+> sbt package (this will create jar file)
+>sbt "run-main HW hellophani"
+
+
+
+
+
+
+

@@ -54,8 +54,35 @@ you will have src and build.sbt folders
 >sbt "run-main HW hellophani"
 
 
+double click in build.sbt from spark2demo project on left panel
+
+https://spark.apache.org/docs/latest/quick-start.html
+search build.sbt
 
 
+datasets
+github.com/dgadiraju/data clone/download
 
+https://resources.itversity.com/courses/cca-175-spark-and-hadoop-developer-certification-scala/lessons/cca-scala-fundamentals-scala/
+
+https://www.youtube.com/watch?v=ecJXK27eCOo&list=PLf0swTFhTI8rv85gSUEyBxN6fdv5D2E0C
+
+download scala:
+2.11.11
+
+ls -ltr ~/Downloads/scala-2.11.11.tgz
+
+pkum60> cp ~/Downloads/scala-2.11.11.tgz .
+tar xzf scala-2.11.11.tgz
+softlink
+ln -s scala-2.11.11 scala
+
+vi ~/.profile
+
+export SCALA_HOME= /users/PKUM60/scala
+export PATH=$PATH:$SCALA_HOME/bin
+
+run profile
+. ~/.profile
 
 

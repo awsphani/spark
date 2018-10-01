@@ -1,3 +1,27 @@
+https://www.youtube.com/watch?v=ecJXK27eCOo&list=PLf0swTFhTI8rv85gSUEyBxN6fdv5D2E0C
+
+download Scala
+ ls -ltr ~/Downloads/scala-2.11.11.tgz
+ cp ~/Downloads/scala-2.11.11.tgz .
+ tar xzf scala-2.11.11.tgz
+ ln -s scala-2.11.11 scala ->soft link
+ 
+ vi ~/.profile or  vi ~/.bash_profile
+ export SCALA_HOME= /users/PKUM60/scala
+ export PATH=$PATH:$SCALA_HOME/bin
+ run profile
+. ~/.profile
+ echo $PATH
+ 
+ scala
+ scala>print("HELLO")
+ -----
+ 
+ 
+ setup intellij
+ .dmg
+
+
 #Scala is JVM based functional programming language.
 Spark is completely developed using Scala
 On top of Spark (used for data processing), Scala also have frameworks such as Play to develop web applications
@@ -11,8 +35,8 @@ Ctrl+l to clear the screen
 
 download and install jdk 8 macos
 download intellj community edition
- ->set sarcula thema,default plugins, featured plugins(scala install ans ide features trainer install)
-start using intellij ide -> should see scala on left panel and sbt on right; if you done see scal, hit cancel
+ ->set darcula thema,default plugins, featured plugins(scala ,ideavim install ans ide features trainer install)
+start using intellij ide -> should see scala on left panel and sbt on right; if you dont see scal, hit cancel
 configure->plugins->browse repositories-> search scala and install
 
 
@@ -36,8 +60,8 @@ object HW {
 
 run->edit config-> pass program argument for args(0) value
 
-
-sbt download and install
+-----
+sbt(simple build tool) download and install
 https://www.scala-sbt.org/download.html
 http://biercoff.com/easy-steps-to-install-scala-and-sbt-on-your-mac/
 1.2.1
@@ -53,9 +77,9 @@ you will have src and build.sbt folders
 > sbt package (this will create jar file)
 >sbt "run-main HW hellophani"
 
-
+> ~package ( will wait for recompile of pkg)
 double click in build.sbt from spark2demo project on left panel
-
+> ~run ( run the changes now)
 https://spark.apache.org/docs/latest/quick-start.html
 search build.sbt
 
@@ -86,3 +110,71 @@ run profile
 . ~/.profile
 
 
+--------
+https://www.youtube.com/watch?v=ecJXK27eCOo&list=PLf0swTFhTI8rv85gSUEyBxN6fdv5D2E0C
+www.itversity.com/topic/cca-setup-scala-and-ide
+eclipse with maven or STS(spring tool suite)
+help>eclipse market place->scala ide 4.2.x
+new-> scala wizards->scala project->getstart
+src-> new scala worksheet
+
+sbt(simple build tool) download and install
+https://www.scala-sbt.org/download.html
+http://biercoff.com/easy-steps-to-install-scala-and-sbt-on-your-mac/
+1.2.1
+
+go to folder where getstart project is cretaed in terminal
+
+>sbt eclipse
+>ls -ltr
+.classpath,.project, .settings gets created
+
+from eclipse import new->existing projects and give the path for getstart above.
+
+---
+
+https://www.youtube.com/watch?v=ecJXK27eCOo&list=PLf0swTFhTI8rv85gSUEyBxN6fdv5D2E0C
+Intellij
+
+new project: select scala from left panel and select sbt on right andd next
+
+name: getstart
+jdk 1.8
+sbt 1.2.1
+scala 2.12.6 finish
+ 
+ getstart>src>main>new worksheet>gs
+ print("HELLO lets start")
+ 
+ 
+ src>main>new scala class->HelloWorld- kind object
+ 
+ object HelloWorld {
+  def main(args: Array[String]): Unit = {
+    print("HelloOregon")
+    print("Hello "+args(0) 
+  }
+}
+run->edit config-> pass program argument for args(0) value
+
+
+ 
+ 
+ 
+ 
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

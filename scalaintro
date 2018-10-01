@@ -157,9 +157,117 @@ scala 2.12.6 finish
 }
 run->edit config-> pass program argument for args(0) value
 
+----
 
+ www.itversity.com/lessons/cca-learn-scala
  
+ REPL-read evaluate,print loop
  
+ Scala>:help
+ :javap ->gives metadata of compiled byte code
+ :sh ->run shell command
+ :save /Users/pkum60/savings.sc ->saves all commands used in scala 
+ :quit 
+ :paste
+ 
+ #Declaring variables
+ no need to define datatypes but tell ifs its mutable(var) or immutable(val) (like final in java)
+ initialization in mandatory with val
+ 
+  object HelloWorld {
+  def main(args: Array[String]): Unit = {
+    print("HelloOregon \n")
+    print("Hello "+args(0))
+
+    /*Declaring variables
+    no need to define data types but tell ifs its mutable(var) or immutable(val) (like final in java)
+    initialization in mandatory with val
+    variables are statically typed, once data type is defined you cannot change to another data type
+    there is no distinction such as primitive type or classes for primitive types
+    int / Integer;
+    all primitive types are classes in scala, if primitive needed scala compiler will take care of it
+    value classes for primitives are Byte(signed 8 bits) -2^7 to -2^7-1,Short(signed16 bit),Int(signed32 bit),Long(signed64 bit),
+    Char(16 bit unsigned 2^0 to 2^16-1 inclusive ),
+    String(seq of chars),
+    Float(32 bit single precision float),Double(32 bit double precision float),
+    */
+
+    val i = 0
+    print(" \n i is " +i )
+    val a: Int = 34
+    print(" \n a is " +a )
+    val l:Long = 12L
+    print(" \n l is " +l )
+    val f:Float = 12.0f
+    print(" \n f is " +f )
+    var p = 2
+
+    print(" \n initial val of p"+p)
+    p=5
+    print(" \n initial val of p changed to "+p)
+
+    //code blk assignment
+
+    val c = {
+      val t = 1;
+      val j= math.pow(2,5)
+      t-j
+    }
+    print(" \n  val of code blk c  "+c)
+
+    /*
+    * Programming constructs
+    *
+    * */
+
+    val r = (math.random*100).toInt
+    val s = (math.random*100).toInt
+    print("\n r and s are :"+r+": " +s)
+    if(r>s){
+      print(" \n r is greater than s ")
+    }else if(r<s){
+      print(" \n s is greater than r ")
+    }else{
+      print(" \n Both s and r are equal")
+    }
+
+    //ternary operator
+    val res1= {
+      if(s>r) s else r
+    }
+    print("\n res is "+res1)
+
+    for(e <- 1 to 10 by 2)
+      print("n e is:"+e)
+
+    //Factorial
+
+    val fact=5
+    var res= 1
+    for(e<-fact to 2 by -1 )
+      res = res*e
+    print("\n Factorial of " + fact +" is:"+res )
+
+    //Fibs
+
+    val fib =10
+
+    var prev=0
+    var curr=1
+    print("\n prev and curr are: "+prev +" "+ curr+"\n")
+    var result = 0
+    for(e<- 2 to fib-1 ){
+      result = prev +curr
+      print(result)
+      prev=curr
+      curr=result
+    }
+
+
+
+  }
+}
+
  
  
 

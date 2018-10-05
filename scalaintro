@@ -349,10 +349,79 @@ Operators
  
  objects,classes,companion object, case classes
  
+ objects(singleton classes)
  
  
- 
- 
+ object Comb {
+
+  /*
+  * object is singleton
+  * Scala doesnot support static keyword like in java,
+  * so create object type then all methods,variables become static, now can invoke using
+  * classname. notations
+  *
+  *go to path of the project and use sbt console
+  *
+  * Comb.main(Array(" "))
+  *
+  *or sbt run - if only one main func in the project
+  *
+  * sbt "run 5,3" if only 1 main func
+  * sbt run-main "Comb 5,3"
+  * javap -p Comb$ ->class file , can see the metadata of the singleton class
+  *
+  * */
+
+  def main(args: Array[String]): Unit ={
+    print("Hello Comb")
+
+    val n = args(0).toInt
+    val r = args(1).toInt
+    val c = HelloWorld.ncr(n,r)
+
+    println("\n ncr for n="+n+",r="+r+" is"+c)
+
+    // create object of Departments, mutable (val)or immutable (var)
+
+    val d = new Departments(1, "HR")
+    
+
+  }
+  
+  
+  /*
+*
+* sbt run-main "Comb 5,3"
+*
+* class Departments(departmentId : Int, departmentName: String){}
+*
+* the above will create a default constructor departmentId,departmentName ->constructor arguments
+*
+* if we use val or var it will be class variables
+*
+* class Departments( val departmentId : Int, val departmentName: String){}
+* we will get two variables like java and 2 getters and constructors as we are using val we will not get setters
+*
+* private final int departmentId
+* private final int departmentName:
+* public int departmentId()
+* public java.lang.string departmentName()
+* public Departments(int,java.lang.string )
+*
+*class Departments( var departmentId : Int, var departmentName: String){}
+* we will get setters also
+*
+* public void departmentId_$eq(int)
+* public void departmentName_$eq(java.lang.string)
+* */
+
+class Departments(var departmentId : Int, var departmentName: String) {
+
+  println("departmentId is: "+departmentId)
+
+  println("departmentName is: "+departmentName)
+
+}
  
  
  

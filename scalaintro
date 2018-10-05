@@ -262,21 +262,92 @@ run->edit config-> pass program argument for args(0) value
       prev=curr
       curr=result
     }
-
-
-
   }
 }
 
- 
- 
+Higher order and Anonymous funcs
 
 
+Func can be a parameter , a return variable
+
+def sum(f: Int=>, a: Int, b: Int): Int = {
+   if(a<b) 0 else f(a) + sum(f,a+1,b)
+}
+
+def id(i: Int) =i
+def sqr(i: Int) = math.pow(i,2).toInt
+def cube(i: Int) = math.pow(i,3).toInt
+
+sum(id,1,10)
+sum(sqr,1,5)
+sum(cube,1,4)
+
+/*
+    *
+    * Anonymous funcs, need not have a name and can be assigned to variables, these vars
+    * can be passes a parameters
+    * */
+
+    // anon funcs defined as vars, funct without name
+
+    val i1 = (i: Int) => i
+    val s1 = (i: Int) => i*i
+    val c1 = (i: Int) => i*i*i
+
+    print("\n anon func i1(10):"+ i1(10))
+    print("\n anon func s1(10):"+ s1(10))
+    print("\n anon func c1(10):"+ c1(10))
+
+
+    /*
+    * pass anon func as parameter to func(higherorder) like below
+    *
+    * */
+
+    print("\n sum of numbers:"+sum((i: Int)=> i,1,10))
+    print("\n sum of squares of numbers:"+sum((i: Int)=> i*i,1,10))
+    print("\n sum of cubes of numbers:"+sum((i: Int)=> i*i*i,1,10))
+
+ 
+
+Operators
+
+    /*
+    * Operators
+    *
+    * &&,||,==(compares attributes of the objects or objects ;not object references(same mem locs, in java == same address comp,==compares values in objects java), similar to equals in java)
+    *
+    *
+    * in java
+    *
+    * String s1 = new String("HELLO");
+    * String s2 = new String("HELLO");
+    * System.out.println(s1 == s2); -> false both the objects s1,s2 have diff addresses
+    * System.out.println(s1.equals(s2)); -> true, both objects have same value.
+    *
+    *
+    *
+    * In scala == is like equals in java
+    *
+    * ==, .equals are same in scala
+    *
+
+
+    * */
+
+    val q= 2
+    val q1=2
+
+    println(q==q1)
+    println(q.equals(q1))
  
  
  
+ object oriented, 
  
+ polymorphism,abstraction,inheritance,encapsulation; classes,subclasses,objects(singleton classes),Traits(similar to iubterfaces
  
+ objects,classes,companion object, case classes
  
  
  

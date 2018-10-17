@@ -31,8 +31,8 @@ REPL – Read, Evaluate, Print and Loop
 Use scala command to launch REPL
 :quit to come out
 Ctrl+l to clear the screen
-
-
+:help command
+:history to check the previous commands
 
 download and install jdk 8 macos
 download intellj community edition
@@ -171,7 +171,13 @@ run->edit config-> pass program argument for args(0) value
  :quit 
  :paste
  
+ Basic Programming Constructs
+ 
  #Declaring variables
+ 
+ Each and every variable in scala must be declared with either val or var
+ val is immutable and var is mutable
+ 
  no need to define datatypes but tell ifs its mutable(var) or immutable(val) (like final in java)
  initialization in mandatory with val
  

@@ -439,7 +439,8 @@ Create a scala program
 Right click on scala -> new -> scala class
 Choose scala object and give the object name and hit enter
 Copy the code which we have seen earlier
-Pass the arguments as mentioned in the video
+Pass the arguments as Run ->edit configurations, program arguments
+
 Run the program
 Example
 import scala.io.Source

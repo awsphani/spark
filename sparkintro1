@@ -1,0 +1,236 @@
+
+https://resources.itversity.com/courses/cca-175-spark-and-hadoop-developer-certification-scala/lessons/cca-scala-fundamentals-scala/topic/cca-object-oriented-concepts-case-classes-scala/
+Basic Programming Constructs
+
+Declaring Variables
+Invoking Functions
+Conditional
+While loop
+For loop
+
+
+Declaring Variables in Scala
+
+Each and every variable in scala must be declared with either val or var
+val is immutable and var is mutable
+
+val i = 2 or var i=2
+
+Invoking Functions
+
+A function is a group of statements that perform a task.
+
+prinlln is a function in scala
+To invoke a function in scala we use its object name and function name
+
+Example
+val s = "Hello World"
+s.toUpperCase
+
+For Loop:epetitive structure which allows us to execute a block of code multiple times.
+
+Example
+for (i <- (1 to 100)) {
+  println(i)
+}
+
+#Task – Sum of all the given numbers
+
+var total = 0
+for (element <- (1 to 100))
+  total += element
+  
+#Task – Sum of even numbers from 1 to 100
+var total = 0 
+for (element <- (1 to 100))
+  if(element % 2 ==0)
+    total += element 
+    
+    
+A while loop statement is executed repeatedly until the condition is false.
+
+syntax
+
+while(condition) { statement }
+
+Display Sum of even numbers and Sum of odd numbers
+
+var lb = 1
+val ub = 100
+var totalEven = 0
+var totalOdd = 0
+while(lb <= ub) {
+  if(lb % 2 == 0)
+    totalEven += lb
+  else
+    totalOdd += lb
+  lb += 1
+}
+
+
+Functions and Anonymous Functions.
+
+A function is a group of statements that perform a task
+We need to give function name, arguments and argument types for regular functions
+Functions are expressions (not statements)
+Functions can be returned, passed as arguments.
+
+
+Syntax
+
+def functionName(parameters : typeofparameters) : returntypeoffunction = {  
+// statements to be executed  
+}
+
+def sum(lb: Int, ub: Int)={
+var total =0
+for (element <- lb to ub) {
+total += element
+}
+total
+}
+
+Problem Statement
+Display the output for given statements
+
+Sum of numbers in a given range
+Sum of squares of numbers in a given range
+Sum of cubes of numbers in a given range
+Sum of multiples of 2 in a given range.
+
+def sum(func: Int => Int, lb:Int, ub:Int)= {
+var total = 0
+for(element <- lb to ub)
+{
+total += func(element)
+}
+total
+}
+
+def id(i: Int)= i
+
+def sqr(i: Int)= i * i
+
+def cube(i: Int)= i * i * i
+
+def double(i: Int)= i * 2
+
+sum(id, 1, 10)
+
+sum(sqr, 1, 10)
+
+sum(cube, 1, 10)
+
+sum(double, 1, 10)
+
+sum(1,10)
+
+Anonymous Functions
+
+Anonymous functions need not have a name associated with it
+Anonymous functions can be assigned to variables
+Those variables can be passed as parameters
+While invoking we need to provide the functionality for the parameters which are defined as functions (for parameter i in this case)
+
+sum(i => i, 1, 10)
+sum(i => i * i, 1, 10)
+sum(i => i * i * i, 1, 10)
+sum(i => i * 2, 1, 10)
+
+
+Object Oriented Concepts – Classes
+
+To define a class in Scala we declare keyword class in front of identifier. Class names should be capitalized.
+syntax
+
+class ClassName
+
+Example
+
+class Order(orderId: Int, orderDate: String, orderCustomerId: Int, orderStatus: String) {
+println("I am inside Order Constructor")
+}
+
+Disassemble and Decompile Scala code
+Use the javap command to disassemble a .class file to look at its signature.
+Syntax
+
+:javap -p className
+//In this case its Order class
+
+Object Creation
+To create an object in scala we use new keyword
+Syntax
+
+val or var = new className(//parameters)
+
+Creating a function inside a class
+We can create a function inside a class
+In this case we create an toString function which will start with override keyword. Since toString overrides the pre-defined toString method, it has to be tagged with the override flag.
+By using toString function we can see the details of the object instead of byte code.
+
+class Order(orderId:Int,orderDate:String,orderCustomerId:Int,orderStatus:String)
+{
+println("I am inside Order Constructor")
+override def toString = "Order("+ orderId+ ","+ orderDate + ","+ orderCustomerId + ","+ orderStatus +")"
+}
+
+Object Creation for Order class
+var order = new Order(1, "2013-10-01 00:00:00.00",100, "COMPLETE")
+
+Passing variables in class instead of arguments
+Example
+
+class Order(val orderId:Int,val orderDate:String,val orderCustomerId:Int,val orderStatus:String) 
+{
+println("I am inside Order Constructor") override def toString = "Order("+ orderId+ ","+ orderDate + ","+ orderCustomerId + ","+ orderStatus +")" 
+}
+
+var order = new Order(1, "2013-10-01 00:00:00.00",100, "COMPLETE")
+
+By default if we don’t set val or var in the parameters then those are called arguments and we cannot access their elements.
+
+
+ special type of class called Object
+
+Scala is more object-oriented than Java because in Scala, we cannot have static members. Instead, Scala has singleton objects
+Object is a keyword which represents singleton class.
+
+Creating a Scala object
+Example
+
+object HelloWorld {
+  def main(args: Array[String]): Unit = {
+    println("Hello World")
+}
+}
+Invoking the above main method from REPL
+
+HelloWorld.main(Array(" "))
+
+
+Companion Objects
+
+A companion object is an object with the same name as a class and is defined in the same source file as the associated file.
+
+Example
+
+class Order(val orderId:Int,val orderDate:String,val orderCustomerId:Int,val orderStatus:String)
+{
+ println("I am inside Order Constructor")
+ override def toString = "Order("+ orderId+ ","+ orderDate + ","+ orderCustomerId + ","+ 
+ orderStatus +")"
+}
+object Order {
+ def apply(orderId: Int, orderDate: String, orderCustomerId: Int, orderStatus:String): Order = {
+ new Order(orderId, orderDate, orderCustomerId, orderStatus)
+}
+
+val order = Order.apply(1, "2013-10-01 00:00:00.000", 100,"COMPLETE")
+
+
+
+}
+
+
+

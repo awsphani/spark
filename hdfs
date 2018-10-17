@@ -1,0 +1,49 @@
+HDFS – Hadoop Distributed file system
+
+Command line hadoop fs or hdfs dfs
+
+Properties files
+/etc/hadoop/conf/core-site.xml
+/etc/hadoop/conf/hdfs-site.xml
+Important Properties
+fs.defaultFS
+dfs.blocksize
+dfs.replication
+
+HDFS commands
+Copying Files
+From local file system(hadoop fs -copyFromLocal or -put)
+To local file system (hadoop fs -copyToLocal or -get)
+From one HDFS location to other (hadoop fs -cp)
+Listing files (hadoop fs -ls)
+Previewing data from files (hadoop fs -tail or -cat)
+Checking sizes of all files (hadoop fs -du).
+
+Properties Files
+From gateway node, we can go to the location /etc/hadoop/conf
+Here we can see properties files which control the environment of HDFS, YARN etc
+
+We have a bunch of files in this location but our primary focus is on only two files 
+core-site.xml and hdfs-site.xml
+
+In core-site.xml we can see the information about our cluster
+
+In hdfs-site.xml we can see the important properties file such as block size and replication
+
+Copy Files From Local Machine to HDFS
+To copy files from local machine to HDFS use below command
+hadoop fs -copyFromLocal /data/crime /user/username/.
+
+
+YARN Quick Preview
+
+In certifications Spark typically runs in YARN mode
+We should be able to check the memory configuration to understand the cluster capacity
+/etc/hadoop/conf/yarn-site.xml
+/etc/hadoop/conf/spark-env.sh
+Spark default settings
+Number of executors – 2
+Memory – 1 GB
+Quite often we underutilize resources. Understanding memory settings thoroughly and then mapping them with data size we are trying to process we can accelerate the execution of jobs.
+
+

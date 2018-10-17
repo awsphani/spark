@@ -230,7 +230,228 @@ val order = Order.apply(1, "2013-10-01 00:00:00.000", 100,"COMPLETE")
 
 
 
+Case Class
+
+Case classes can be pattern matched
+Case classes automatically define hashcode and equals
+Case classes automatically define getter methods for the constructor arguments(if we use var in the argument).
+
+Example
+case class Order(var orderId:Int,var orderDate:String,var orderCustomerId:Int,var orderStatus:String)
+{
+ println("I am inside Order Constructor")
+ override def toString = "Order("+ orderId + "," + orderDate + "," + orderCustomerId + "," + orderStatus +")"
 }
 
+Object Creation
+val order = Order(1, "2013-10-01 00:00:00.000", 100,"COMPLETE")
+
+
+
+
+Scala collections are categorized into 3 types
+
+Seq
+Set
+Map
+
+
+Seq
+
+Sequence have length
+Elements in Sequence can be accessed using prefix
+eg: scala.Array, scala.collection.immutable.List etc
+Classes are divided into Seq classes and Buffer classes
+Vector and List are considered as Seq classes and they are more frequently used
+Array is special type of collection analogous to Java Array
+We will get into the details of Array and List
+Array is mutable while List is immutable
+Seq have 2 sub traits – IndexedSeq and LinearSeq
+
+Set
+Set is iterable which contain unique elements (no duplicates)
+As duplicates are not allowed, there is no length (Seq have both length and index)
+Even though we can access data using index, it might not return same value always
+By default Set is immutable, but there is mutable one as well
+Let us see how we can use mutable and immutable Set in a demo
+If the Set contain elements for which implicit Ordering defined, we can use SortedSet to sort the data
+
+Map
+Map is Iterable of Key and Value pairs
+Each element can be defined as key -> value or (key, value)
+
+Declaration of Array
+val a = Array(1,2,3,4)
+
+Declaration of List
+val l = List(1,2,3,4)
+
+Declaration of set
+val s = Set(1,1,2,2,3,4)
+
+Declaration of Map
+val m = Map("Hello" -> 1 , "World" -> 2)
+
+
+
+Basic Map Reduce Operations
+
+Problem Statement
+Get Sum of squares all Even Numbers in a given range
+
+val l = (1 to 100).toList
+val f = l.filter(ele => ele % 2 == 0)
+val m = f.map(rec => rec * rec)
+var total =0
+for( e <- m) total + = e
+
+use this command in the terminal for setting up data sets git clone https://github.com/dgadiraju/data.git
+
+
+Read data from files
+Convert into collection
+Perform collection operation to preview the data
+Run map-reduce operations
+
+Reading data from files
+
+To read files from a file system in scala there is a package called scala.io
+In scala.io we have a package named Source which is used to read files from the file system
+Important operations in Source package are as follows
+
+Few APIs from Source to read data
+
+fromFile is used to read data from a file
+fromIterable is used to read data from collection
+fromURI creates Source from a file with given file: URI
+fromURL is used to read data from HTTP URL
+
+import scala.io.Source
+
+val orderItems = Source.fromFile("/data/retail_db/order_items/part-00000").getLines.toList
+orderItems(0)
+orderItems.take(10).foreach(println)
+orderItems.size
+
+val orderItemsFilter = orderItems.filter(orderItem => orderItem.split(",")(1).toInt == 2)
+val orderItemsMap = orderItemsFilter.map(orderItem => orderItem.split(",")(4).toFloat)
+
+orderItemsMap.sum
+
+orderItemsMap.reduce((total, orderItemSubtotal) => total + orderItemSubtotal)
+
+orderItemsMap.reduce(_ + _)
+
+
+Tuples:
+A tuple is another data structure in Scala
+It can hold heterogeneous elements
+Syntax for tuple val t = (1, "Hello World")
+Another syntax for tuple val t: (Int, String) = (1, "Hello World")
+Tuple has a handful of methods
+Elements of tuples can be accessed using _ notation (t._1 will return 1 and t._2 return Hello World)
+If there are 2 elements it is called also known as pair
+Elements of a tuple can be collections and vice versa
+Tuple with collection val t = (1, List(1, 2, 3, 4))
+Collection with tuple  val t = List((1, "Hello"), (2, "World"))
+We will use tuples quite extensively in Spark as a key value pair
+
+
+Development Cycle – Developing Source Code
+posted on APRIL 16, 2018
+
+Topic Progress:                  
+← Back to Lesson
+As part of this topic, we will explore how to develop the application build a jar file and run it as a jar file.
+
+Example
+val orderItems = Source.fromFile("/data/retail_db/order_items/part-00000").getLines
+val orderRevenue = orderItems.filter(oi => oi.split(",")(1).toInt == 2).
+map(oi => oi.split(",")(4).toFloat).
+reduce((t, v) => t + v)
+Using vi editor to build the application
+import scala.io.Source
+object OrderRevenue {
+def main(args: Array[String]) = {
+ val orderItems = Source.fromFile("/home/dgadiraju/data/retail_db/order_items/part-00000").getLines
+ val orderRevenue = orderItems.filter(oi => oi.split(",")(1).toInt == 2).
+ filter(oi => oi.split(",")(1).toInt == 2).
+ map(oi => oi.split(",")(4).toFloat).
+ reduce((t, v) => t + v)
+ println(orderRevenue)
+ }
+}
+To run the program use below command
+
+scala src/main/scala/orderRevenue.scala
+
+
+Note
+We should never run the program like above because by running like that it compiles the program into bytecode and then bytecode will be executed.
+
+Development Cycle – Compile source code to jar using SBT
+
+As part of this topic, we will build the jar file and run as the jar file
+
+For building the jar file we typically use a tool called SBT
+SBT stands for a simple build tool
+Scala applications can be compiled in many other ways but SBT is the most popular one
+
+Set up SBT
+Go to this site to download the SBT
+Install and download the sbt as mentioned in the site
+Launch sbt by hitting sbt in the terminal
+Go to the path(in my case its /Research/code/scalademo/retail) and enter the command sbt package. It will compile the source code
+Once it is compiled we can run the program by using the command sbt run.
+
+As part of this topic, we will explore another way of compiling and running the jar file with arguments through SBT
+
+We can make the changes to the code
+Recompile the jar file
+Run the jar file
+How to pass the arguments to the program
+
+import scala.io.Source
+object OrderRevenue {
+def main(args: Array[String]) = {
+  val orderId = args(1).toInt
+  val orderItems = Source.fromFile("/home/dgadiraju/data/retail_db/order_items/part-00000").getLines
+  val orderRevenue = orderItems.filter(oi => oi.split(",")(1).toInt == orderId).
+  map(oi => oi.split(",")(4).toFloat).
+  reduce((t, v) => t + v)
+  println(orderRevenue)
+ }
+}
+Run the program using this below command
+
+scala target/scala-2.10/retail_2.10-1.0.jar OrderRevenue 2
+
+Setting up IntelliJ with scala
+Go to the link Scala Download
+Click on Download IntelliJ option
+Go to the bottom of the page and then click on the community edition of windows .exe file
+Install the IntelliJ file and follow the procedure
+Open IntelliJ and click on plugins
+Search for scala and install the plugin and click on ok
+Give project details as mentioned
+
+Create a scala program
+Right click on scala -> new -> scala class
+Choose scala object and give the object name and hit enter
+Copy the code which we have seen earlier
+Pass the arguments as mentioned in the video
+Run the program
+Example
+import scala.io.Source
+object OrderRevenue {
+  def main(args: Array[String]) = {
+    val orderId = args(0).toInt
+    val orderItems = Source.fromFile("/home/dgadiraju/data/retail_db/order_items/part-00000").getLines
+    val orderRevenue = orderItems.filter(oi => oi.split(",")(1).toInt == orderId).
+      map(oi => oi.split(",")(4).toFloat).
+      reduce((t, v) => t + v)
+    println(orderRevenue)
+  }
+}
 
 

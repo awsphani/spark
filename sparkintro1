@@ -1,5 +1,8 @@
 
 https://resources.itversity.com/courses/cca-175-spark-and-hadoop-developer-certification-scala/lessons/cca-scala-fundamentals-scala/topic/cca-object-oriented-concepts-case-classes-scala/
+udd cca-175-spark-and-hadoop-developer-certification-scala/learn/v4/content
+SCALA INTRO:
+
 Basic Programming Constructs
 
 Declaring Variables
@@ -455,4 +458,111 @@ object OrderRevenue {
   }
 }
 
+------------
 
+
+Transform, Stage and Store - Spark
+
+spark- distributed computing framework(bunch of apis to process data)
+
+it can read data from hdfs, s3 ,azure vaiery of cloud patforms
+
+
+
+Create Resilient Distributed Data Sets (RDD)
+
+RDD – Resilient Distributed Dataset
+In-memory
+Distributed
+Resilient
+Reading files from HDFS
+Reading files from the local file system and create RDD
+A quick overview of Transformations and Actions
+DAG and lazy evaluation
+Previewing the data using Actions
+
+Resilient Distributed Datasets (RDD) is a fundamental data structure of Spark. It is an immutable distributed collection of objects. Each dataset in RDD is divided into logical partitions, which may be computed on different nodes of the cluster. RDDs can contain any type of Python, Java, or Scala objects, including user-defined classes.
+
+Resilient, means that it can be recomputed in case Spark looses a part of the data. RDD's are computed in memory, can be persisted in memory.
+Formally, an RDD is a read-only, partitioned collection of records. RDDs can be created through deterministic operations on either data on stable storage or other RDDs. RDD is a fault-tolerant collection of elements that can be operated on in parallel.
+
+
+Creating RDD -Validating files from a file system
+
+hadoop fs -ls /public/reatil_db/orders
+hadoop fs -tail /public/retail_db/orders/part-00000
+
+
+create RDD using spark-shell
+
+spark-shell --master yarn \
+ --conf spark.ui.port = 12654 \
+ --num-executors 1 \
+ --executor-memory 512M
+
+val orders = sc.textFile("/public/retail_db/orders")
+To see first 10 records from the table we use orders.take(10)
+
+Reading files from the local file system and creating RDD
+
+val productsRaw = scala.io.Source.fromFile("/data/retail_db/products/part-00000").getLines.toList
+val productsRDD = sc.parallelize(productsRaw)
+productsRDD.take(10)
+
+
+
+Data Frame (Distributed collection with structure)
+
+APIs provided by sqlContext
+Supported file format
+orc
+json
+parquet
+avro
+Previewing the data
+show
+Creating Data Frame using sqlContext
+To preview the data from orders table give the command hadoop fs -tail /public/retail_db_json/orders/part-r-00000-990f5773-9005-49ba-b670-631286032674
+Reading the json file into a variable val ordersDF = sqlContext.read.json(“/public/retail_db_json/orders”)
+To preview data use variableName.show ordersDF.show, here it fetches the top 20 rows from the table
+To display column names of a table use the command ordersDF.printSchema
+To display only two columns from an existing table use the command ordersDF.select(“order_id”, “order_date”).show, here select is an sqlContext api
+And there is another way to display the data within a single command by using another sqlContext api load, here is the command sqlContext.load(“/public/retail_db_json/orders”, “json”).show.
+
+
+Transformations Overview
+
+Transformations Overview
+posted on APRIL 27, 2018
+
+Topic Progress:                                        
+← Back to Lesson
+As part of this topic, we will explore Standard Transformations
+
+String Manipulation (Scala)
+Row-level transformations
+Filtering (horizontal and vertical)
+Joins
+Aggregation
+Sorting
+Ranking
+Set Operations
+
+
+//String Manipulation
+val str = orders.first
+val a = str.split(",")
+val orderId = a(0).toInt
+a(1).contains("2013")
+
+val orderDate = a(1)
+orderDate.substring(0, 10)
+orderDate.substring(5, 7)
+orderDate.substring(11)
+orderDate.replace('-', '/')
+orderDate.replace("07", "July")
+orderDate.indexOf("2")
+orderDate.indexOf("2", 2)
+orderDate.length
+
+Row level transformations using map

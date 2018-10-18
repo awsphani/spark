@@ -566,3 +566,17 @@ orderDate.indexOf("2", 2)
 orderDate.length
 
 Row level transformations using map
+
+Data cleansing – removing special characters
+Standardization – eg: phone number, we might want to get phone numbers from different sources and it might be represented the different manner in different systems. When we get onto downstream systems we have to represent phone number in one standard format.
+Discarding or filtering out unnecessary data
+Unpivoting the data, one row with many columns might have to return a collection of rows
+
+Let us map these scenarios with APIs categorized under transformations
+
+Data cleansing and standardization – map. It takes one record as input and returns exactly one record as output
+Discarding or filtering – filter. It takes one record as input, and if the expression returns false record will be discarded
+Also for vertical filtering, we use the map function
+Unpivoting – flatMap. For each input record, there will be 1 to n output records
+Number of invocations = Number of elements in RDD
+

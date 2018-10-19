@@ -580,3 +580,24 @@ Also for vertical filtering, we use the map function
 Unpivoting – flatMap. For each input record, there will be 1 to n output records
 Number of invocations = Number of elements in RDD
 
+/Users/pkum60/IdeaProjects/getstartsprk
+sbt package
+/Users/pkum60/IdeaProjects/getstartsprk/target/scala-2.11/getstartsprk_2.11-0.1.jar
+
+
+run sparkjob using spark-submit
+
+spark-submit --class com.test.retailsprk.RetailMainSprk getstartsprk_2.11-0.1.jar local srcpath tgtpath
+
+ spark-submit \
+--master yarn \
+--deploy-mode cluster \  
+--class com.test.retailsprk.RetailMainSprk \
+getstartsprk_2.11-0.1.jar s3://digital-ingress-preprod-east/cde/dev/member-access/tst1/retail_db/order_items/ s3://digital-ingress-preprod-east/cde/dev/member-access/tst1/retail_db/order_items_out/
+
+spark-submit \
+--master yarn \
+--deploy-mode cluster \  
+--class com.test.retailsprk.RetailMainSprk \
+getstartsprk_2.11-0.1.jar s3://digital-ingress-preprod-east/cde/dev/member-access/tst1/retail_db/order_items/ s3://digital-ingress-preprod-east/cde/dev/member-access/tst1/retail_db/order_items_out/
+

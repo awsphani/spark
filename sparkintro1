@@ -601,3 +601,5 @@ spark-submit \
 --class com.test.retailsprk.RetailMainSprk \
 getstartsprk_2.11-0.1.jar s3://digi-ingre-preprod-east/cde/dev/member-access/tst1/retail_db/order_items/ s3://digital-ingress-preprod-east/cde/dev/member-access/tst1/retail_db/order_items_out/
 
+
+

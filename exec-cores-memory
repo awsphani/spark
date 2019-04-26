@@ -1,6 +1,7 @@
 
 https://spoddutur.github.io/spark-notes/distribution_of_executors_cores_and_memory_for_spark_application.html
 https://stackoverflow.com/questions/37871194/how-to-tune-spark-executor-number-cores-and-executor-memory
+https://blog.csdn.net/oufuji/article/details/50387104
 
 https://databricks.com/session/spark-on-yarn-a-deep-dive
 https://databricks.com/sparkaisummit/north-america/sessions

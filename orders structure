@@ -42,8 +42,9 @@ root
  |-- order_item_quantity: long (nullable = true)
  |-- order_item_subtotal: double (nullable = true)
  
- >>> df1=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/orders/")
->>> df1.show(10,False)
+orders=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/orders/")
+orders.show(10,False)
+orders.createOrReplaceTempView('orders')
 +-----------------+---------------------+--------+---------------+
 |order_customer_id|order_date           |order_id|order_status   |
 +-----------------+---------------------+--------+---------------+
@@ -60,8 +61,10 @@ root
 +-----------------+---------------------+--------+---------------+
 
  
- df1=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/order_items/")
- df1.show(10,False)
+order_items=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/order_items/")
+order_items.show(10,False)
+order_items.createOrReplaceTempView('order_items')
+
 +-------------+-------------------+---------------------+------------------------+-------------------+-------------------+
 |order_item_id|order_item_order_id|order_item_product_id|order_item_product_price|order_item_quantity|order_item_subtotal|
 +-------------+-------------------+---------------------+------------------------+-------------------+-------------------+
@@ -79,8 +82,9 @@ root
  
  
  
-df1=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/departments/")
-df1.show(10,False)
+departments=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/departments/")
+departments.show(10,False)
+departments.createOrReplaceTempView('departments')
 +-------------+---------------+
 |department_id|department_name|
 +-------------+---------------+
@@ -92,8 +96,9 @@ df1.show(10,False)
 |7            |Fan Shop       |
 +-------------+---------------+
 
-df1=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/categories/")
-df1.show(10,False)
+categories=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/categories/")
+categories.show(10,False)
+categories.createOrReplaceTempView('categories')
 +----------------------+-----------+-------------------+
 |category_department_id|category_id|category_name      |
 +----------------------+-----------+-------------------+
@@ -109,8 +114,8 @@ df1.show(10,False)
 |3                     |10         |Strength Training  |
 +----------------------+-----------+-------------------+
 
-df1=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/customers/")
-
+customers=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/customers/")
+customers.createOrReplaceTempView('customers')
 +-------------+--------------+--------------+-----------+--------------+-----------------+--------------+---------------------------+----------------+
 |customer_city|customer_email|customer_fname|customer_id|customer_lname|customer_password|customer_state|customer_street            |customer_zipcode|
 +-------------+--------------+--------------+-----------+--------------+-----------------+--------------+---------------------------+----------------+
@@ -126,8 +131,9 @@ df1=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/customers/")
 |Stafford     |XXXXXXXXX     |Melissa       |10         |Smith         |XXXXXXXXX        |VA            |8598 Harvest Beacon Plaza  |22554           |
 +-------------+--------------+--------------+-----------+--------------+-----------------+--------------+---------------------------+----------------+
 
->>> df1=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/products/")
->>> df1.show(10,False)
+products=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/products/")
+products.show(10,False)
+products.createOrReplaceTempView('products')
 +-------------------+-------------------+----------+---------------------------------------------------------------------------------------+---------------------------------------------+-------------+
 |product_category_id|product_description|product_id|product_image                                                                          |product_name                                 |product_price|
 +-------------------+-------------------+----------+---------------------------------------------------------------------------------------+---------------------------------------------+-------------+

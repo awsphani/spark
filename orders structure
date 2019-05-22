@@ -42,6 +42,23 @@ root
  |-- order_item_quantity: long (nullable = true)
  |-- order_item_subtotal: double (nullable = true)
  
+ >>> df1=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/orders/")
+>>> df1.show(10,False)
++-----------------+---------------------+--------+---------------+
+|order_customer_id|order_date           |order_id|order_status   |
++-----------------+---------------------+--------+---------------+
+|11599            |2013-07-25 00:00:00.0|1       |CLOSED         |
+|256              |2013-07-25 00:00:00.0|2       |PENDING_PAYMENT|
+|12111            |2013-07-25 00:00:00.0|3       |COMPLETE       |
+|8827             |2013-07-25 00:00:00.0|4       |CLOSED         |
+|11318            |2013-07-25 00:00:00.0|5       |COMPLETE       |
+|7130             |2013-07-25 00:00:00.0|6       |COMPLETE       |
+|4530             |2013-07-25 00:00:00.0|7       |COMPLETE       |
+|2911             |2013-07-25 00:00:00.0|8       |PROCESSING     |
+|5657             |2013-07-25 00:00:00.0|9       |PENDING_PAYMENT|
+|5648             |2013-07-25 00:00:00.0|10      |PENDING_PAYMENT|
++-----------------+---------------------+--------+---------------+
+
  
  df1=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/order_items/")
  df1.show(10,False)
@@ -62,4 +79,69 @@ root
  
  
  
+df1=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/departments/")
+df1.show(10,False)
++-------------+---------------+
+|department_id|department_name|
++-------------+---------------+
+|2            |Fitness        |
+|3            |Footwear       |
+|4            |Apparel        |
+|5            |Golf           |
+|6            |Outdoors       |
+|7            |Fan Shop       |
++-------------+---------------+
+
+df1=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/categories/")
+df1.show(10,False)
++----------------------+-----------+-------------------+
+|category_department_id|category_id|category_name      |
++----------------------+-----------+-------------------+
+|2                     |1          |Football           |
+|2                     |2          |Soccer             |
+|2                     |3          |Baseball & Softball|
+|2                     |4          |Basketball         |
+|2                     |5          |Lacrosse           |
+|2                     |6          |Tennis & Racquet   |
+|2                     |7          |Hockey             |
+|2                     |8          |More Sports        |
+|3                     |9          |Cardio Equipment   |
+|3                     |10         |Strength Training  |
++----------------------+-----------+-------------------+
+
+df1=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/customers/")
+
++-------------+--------------+--------------+-----------+--------------+-----------------+--------------+---------------------------+----------------+
+|customer_city|customer_email|customer_fname|customer_id|customer_lname|customer_password|customer_state|customer_street            |customer_zipcode|
++-------------+--------------+--------------+-----------+--------------+-----------------+--------------+---------------------------+----------------+
+|Brownsville  |XXXXXXXXX     |Richard       |1          |Hernandez     |XXXXXXXXX        |TX            |6303 Heather Plaza         |78521           |
+|Littleton    |XXXXXXXXX     |Mary          |2          |Barrett       |XXXXXXXXX        |CO            |9526 Noble Embers Ridge    |80126           |
+|Caguas       |XXXXXXXXX     |Ann           |3          |Smith         |XXXXXXXXX        |PR            |3422 Blue Pioneer Bend     |00725           |
+|San Marcos   |XXXXXXXXX     |Mary          |4          |Jones         |XXXXXXXXX        |CA            |8324 Little Common         |92069           |
+|Caguas       |XXXXXXXXX     |Robert        |5          |Hudson        |XXXXXXXXX        |PR            |"10 Crystal River Mall "   |00725           |
+|Passaic      |XXXXXXXXX     |Mary          |6          |Smith         |XXXXXXXXX        |NJ            |3151 Sleepy Quail Promenade|07055           |
+|Caguas       |XXXXXXXXX     |Melissa       |7          |Wilcox        |XXXXXXXXX        |PR            |9453 High Concession       |00725           |
+|Lawrence     |XXXXXXXXX     |Megan         |8          |Smith         |XXXXXXXXX        |MA            |3047 Foggy Forest Plaza    |01841           |
+|Caguas       |XXXXXXXXX     |Mary          |9          |Perez         |XXXXXXXXX        |PR            |3616 Quaking Street        |00725           |
+|Stafford     |XXXXXXXXX     |Melissa       |10         |Smith         |XXXXXXXXX        |VA            |8598 Harvest Beacon Plaza  |22554           |
++-------------+--------------+--------------+-----------+--------------+-----------------+--------------+---------------------------+----------------+
+
+>>> df1=spark.read.json("s3://zz-testing/kik/tmp/test/retail_db_json/products/")
+>>> df1.show(10,False)
++-------------------+-------------------+----------+---------------------------------------------------------------------------------------+---------------------------------------------+-------------+
+|product_category_id|product_description|product_id|product_image                                                                          |product_name                                 |product_price|
++-------------------+-------------------+----------+---------------------------------------------------------------------------------------+---------------------------------------------+-------------+
+|2                  |                   |1         |http://images.acmesports.sports/Quest+Q64+10+FT.+x+10+FT.+Slant+Leg+Instant+Up+Canopy  |Quest Q64 10 FT. x 10 FT. Slant Leg Instant U|59.98        |
+|2                  |                   |2         |http://images.acmesports.sports/Under+Armour+Men%27s+Highlight+MC+Football+Cleat       |Under Armour Men's Highlight MC Football Clea|129.99       |
+|2                  |                   |3         |http://images.acmesports.sports/Under+Armour+Men%27s+Renegade+D+Mid+Football+Cleat     |Under Armour Men's Renegade D Mid Football Cl|89.99        |
+|2                  |                   |4         |http://images.acmesports.sports/Under+Armour+Men%27s+Renegade+D+Mid+Football+Cleat     |Under Armour Men's Renegade D Mid Football Cl|89.99        |
+|2                  |                   |5         |http://images.acmesports.sports/Riddell+Youth+Revolution+Speed+Custom+Football+Helmet  |Riddell Youth Revolution Speed Custom Footbal|199.99       |
+|2                  |                   |6         |http://images.acmesports.sports/Jordan+Men%27s+VI+Retro+TD+Football+Cleat              |Jordan Men's VI Retro TD Football Cleat      |134.99       |
+|2                  |                   |7         |http://images.acmesports.sports/Schutt+Youth+Recruit+Hybrid+Custom+Football+Helmet+2014|Schutt Youth Recruit Hybrid Custom Football H|99.99        |
+|2                  |                   |8         |http://images.acmesports.sports/Nike+Men%27s+Vapor+Carbon+Elite+TD+Football+Cleat      |Nike Men's Vapor Carbon Elite TD Football Cle|129.99       |
+|2                  |                   |9         |http://images.acmesports.sports/Nike+Adult+Vapor+Jet+3.0+Receiver+Gloves               |Nike Adult Vapor Jet 3.0 Receiver Gloves     |50.0         |
+|2                  |                   |10        |http://images.acmesports.sports/Under+Armour+Men%27s+Highlight+MC+Football+Cleat       |Under Armour Men's Highlight MC Football Clea|129.99       |
++-------------------+-------------------+----------+---------------------------------------------------------------------------------------+---------------------------------------------+-------------+
+only showing top 10 rows
+
  

@@ -279,7 +279,45 @@ DK      Denmark 1
 EG      Egypt   4
 FR      France  1
 
-employees=spark.read.format("com.databricks.spark.csv").option("header", "false").option("delimiter", "\x01")\
-                    .load("s3://zz-testing/kik/tmp/data/hr_db/employees/*.*", schema=schema)
-employees.show(10,False)
-employees.createOrReplaceTempView('employees')
+from datetime import datetime,date
+from pyspark.sql import SQLContext, Row, Column, Window, functions as F
+from pyspark.sql.functions import date_format, unix_timestamp, coalesce, trim, upper, current_date, datediff, concat, col, lit, broadcast, udf, sum, max, from_utc_timestamp
+from pyspark.sql.types import *
+from pyspark.sql.functions import *
+
+employeesPath = 's3://zz-testing/kik/tmp/test/data/hr_db/employees/'
+
+
+employees = spark. \
+  read. \
+  format('csv'). \
+  option('sep', '\t'). \
+  schema('''employee_id INT, 
+            first_name STRING, 
+            last_name STRING, 
+            email STRING,
+            phone_number STRING, 
+            hire_date STRING, 
+            job_id STRING, 
+            salary FLOAT,
+            commission_pct STRING,
+            manager_id STRING, 
+            department_id STRING
+         '''). \
+  load(employeesPath)
+
+employees.show()
+
+employees1 = spark. \
+  read. \
+  format('csv'). \
+  option('sep', '\t'). \
+  schema(employees_schema). \
+  load(employeesPath)
+  
+employees1.show()
+
+
+http://wip.itversity.com/lessons/building-spark-based-applications-using-python/
+
+

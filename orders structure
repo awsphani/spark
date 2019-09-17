@@ -151,3 +151,135 @@ products.createOrReplaceTempView('products')
 only showing top 10 rows
 
  
+--------------------------
+
+emp csv files, create schemas,
+
+employees_schema = StructType([
+        StructField("employee_id", IntegerType()),
+        StructField("first_name", StringType()),
+        StructField("last_name", StringType()),
+        StructField("email", StringType()),
+        StructField("phone_number", StringType()),
+        StructField("hire_date", DateType()),
+        StructField("job_id", StringType()),
+        StructField("salary", DecimalType(18, 2)),
+        StructField("commission_pct", DecimalType(2, 2)),
+        StructField("manager_id", IntegerType()),
+        StructField("department_id", IntegerType()))
+    ])
+
+employees_schema = StructType([
+        StructField("employee_id", IntegerType()),
+        StructField("first_name", StringType()),
+        StructField("last_name", StringType()),
+        StructField("email", StringType()),
+        StructField("phone_number", StringType()),
+        StructField("hire_date", DateType()),
+        StructField("job_id", StringType()),
+        StructField("salary", DecimalType(18, 2)),
+        StructField("commission_pct", DecimalType(2, 2)),
+        StructField("manager_id", IntegerType()),
+        StructField("department_id", IntegerType())
+    ])
+
+departments_schema = StructType([
+        StructField("department_id", IntegerType()),
+        StructField("job_title", StringType()),
+        StructField("min_salary", IntegerType()),
+        StructField("max_salary", IntegerType())
+    ])
+jobs_schema = StructType([
+        StructField("job_id", StringType()),
+        StructField("department_name", StringType()),
+        StructField("manager_id", IntegerType()),
+        StructField("location_id", IntegerType())
+    ])
+
+
+jobhistory_schema = StructType([
+        StructField("employee_id", IntegerType()),
+        StructField("start_date", DateType()),
+        StructField("end_date", DateType()),
+        StructField("job_id", StringType()),
+        StructField("department_id", IntegerType())
+    ])
+
+locations_schema = StructType([
+        StructField("location_id", IntegerType()),
+        StructField("street_address", StringType()),
+        StructField("postal_code", StringType()),
+        StructField("city", StringType()),
+        StructField("state_province", StringType()),
+        StructField("country_id", StringType())
+    ])
+regions_schema = StructType([
+        StructField("region_id", IntegerType()),
+        StructField("region_name", StringType())
+    ])
+
+countries_schema = StructType([
+        StructField("country_id", IntegerType()),
+        StructField("country_name", StringType()),
+        StructField("region_id", IntegerType())
+    ])    
+https://docs.oracle.com/en/database/oracle/oracle-database/12.2/comsc/HR-sample-schema-table-descriptions.html#GUID-D3AB4410-FEA7-49A4-A0E4-9E75B2ED40DA
+
+
+
+100     Steven  King    SKING   515.123.4567    1987-06-17      AD_PRES 24000.00        null    null    90
+101     Neena   Kochhar NKOCHHAR        515.123.4568    1989-09-21      AD_VP   17000.00        null    100     90
+102     Lex     De Haan LDEHAAN 515.123.4569    1993-01-13      AD_VP   17000.00        null    100     90
+103     Alexander       Hunold  AHUNOLD 590.423.4567    1990-01-03      IT_PROG 9000.00 null    102     60
+104     Bruce   Ernst   BERNST  590.423.4568    1991-05-21      IT_PROG 6000.00 null    103     60
+105     David   Austin  DAUSTIN 590.423.4569    1997-06-25      IT_PROG 4800.00 null    103     60
+
+
+210     IT Support      null    1700
+220     NOC     null    1700
+230     IT Helpdesk     null    1700
+240     Government Sales        null    1700
+250     Retail Sales    null    1700
+260     Recruiting      null    1700
+270     Payroll null    1700
+
+jobs
+MK_MAN  Marketing Manager       9000    15000
+MK_REP  Marketing Representative        4000    9000
+
+job_history
+101     1989-09-21      1993-10-27      AC_ACCOUNT      110
+101     1993-10-28      1997-03-15      AC_MGR  110
+102     1993-01-13      1998-07-24      IT_PROG 60
+114     1998-03-24      1999-12-31      ST_CLERK        50
+122     1999-01-01      1999-12-31      ST_CLERK        50
+
+locations
+1000    1297 Via Cola di Rie    00989   Roma    null    IT
+1100    93091 Calle della Testa 10934   Venice  null    IT
+1200    2017 Shinjuku-ku        1689    Tokyo   Tokyo Prefecture        JP
+1300    9450 Kamiya-cho 6823    Hiroshima       null    JP
+1400    2014 Jabberwocky Rd     26192   Southlake       Texas   US
+1500    2011 Interiors Blvd     99236   South San Francisco     California      US
+
+regions
+1       Europe
+
+countries
+
+AR      Argentina       2
+AU      Australia       3
+BE      Belgium 1
+BR      Brazil  2
+CA      Canada  2
+CH      Switzerland     1
+CN      China   3
+DE      Germany 1
+DK      Denmark 1
+EG      Egypt   4
+FR      France  1
+
+employees=spark.read.format("com.databricks.spark.csv").option("header", "false").option("delimiter", "\x01")\
+                    .load("s3://zz-testing/kik/tmp/data/hr_db/employees/*.*", schema=schema)
+employees.show(10,False)
+employees.createOrReplaceTempView('employees')

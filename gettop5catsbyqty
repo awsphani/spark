@@ -1,4 +1,4 @@
-oi_df=spark.read.json('s3://ngap-idp-cdtbi-us-west-2/dev/idp-aggregated/test/data/retail_db_json/order_items/')
+oi_df=spark.read.json('s3://zz-test/test/data/retail_db_json/order_items/')
 oi_df.show()
 +-------------+-------------------+---------------------+------------------------+-------------------+-------------------+
 |order_item_id|order_item_order_id|order_item_product_id|order_item_product_price|order_item_quantity|order_item_subtotal|
@@ -31,7 +31,7 @@ top_prds_qtys.show(10,False)
 
 top_prds_qtys.createOrReplaceTempView('top_prds_qtys')
 
-products_df=spark.read.json('s3://ngap-idp-cdtbi-us-west-2/dev/idp-aggregated/test/data/retail_db_json/products/')
+products_df=spark.read.json('s3://zz-test/test/data/retail_db_json/products/')
 products_df.show(5,False)
 
 +-------------------+-------------------+----------+-------------------------------------------------------------------------------------+---------------------------------------------+-------------+
@@ -68,7 +68,7 @@ top_prdsname_byqty.createOrReplaceTempView('top_prdsname_byqty')
 
 #also find the category name associated with productname.
 
-cat_df=spark.read.json('s3://ngap-idp-cdtbi-us-west-2/dev/idp-aggregated/test/data/retail_db_json/categories/')
+cat_df=spark.read.json('s3://zz-test/test/data/retail_db_json/categories/')
 cat_df.show(5,False)
 
 +----------------------+-----------+-------------------+
@@ -142,7 +142,7 @@ group by  p.product_name,cat.category_name order by total_qty desc""")
 
 #get category_name,revenue for each category for each day
 
-o_df=spark.read.json('s3://ngap-idp-cdtbi-us-west-2/dev/idp-aggregated/test/data/retail_db_json/orders/')
+o_df=spark.read.json('s3://zz-test/test/data/retail_db_json/orders/')
 o_df.show()
 +-----------------+--------------------+--------+---------------+               
 |order_customer_id|          order_date|order_id|   order_status|
@@ -175,19 +175,19 @@ o_df.createOrReplaceTempView('o_df')
 
 #Get category_name,revenue for each category for each day
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-o_df=spark.read.json('s3://ngap-idp-cdtbi-us-west-2/dev/idp-aggregated/test/data/retail_db_json/orders/')
+o_df=spark.read.json('s3://zz-test/test/data/retail_db_json/orders/')
 o_df.show()
 o_df.createOrReplaceTempView('o_df')
 
-oi_df=spark.read.json('s3://ngap-idp-cdtbi-us-west-2/dev/idp-aggregated/test/data/retail_db_json/order_items/')
+oi_df=spark.read.json('s3://zz-test/test/data/retail_db_json/order_items/')
 oi_df.show()
 oi_df.createOrReplaceTempView('oi_df')
 
-products_df=spark.read.json('s3://ngap-idp-cdtbi-us-west-2/dev/idp-aggregated/test/data/retail_db_json/products/')
+products_df=spark.read.json('s3://zz-test/test/data/retail_db_json/products/')
 products_df.show(5,False)
 products_df.createOrReplaceTempView('products_df')
 
-cat_df=spark.read.json('s3://ngap-idp-cdtbi-us-west-2/dev/idp-aggregated/test/data/retail_db_json/categories/')
+cat_df=spark.read.json('s3://zz-test/test/data/retail_db_json/categories/')
 cat_df.show(5,False)
 cat_df.createOrReplaceTempView('cat_df')
 

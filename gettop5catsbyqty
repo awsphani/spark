@@ -1,0 +1,301 @@
+oi_df=spark.read.json('s3://ngap-idp-cdtbi-us-west-2/dev/idp-aggregated/test/data/retail_db_json/order_items/')
+oi_df.show()
++-------------+-------------------+---------------------+------------------------+-------------------+-------------------+
+|order_item_id|order_item_order_id|order_item_product_id|order_item_product_price|order_item_quantity|order_item_subtotal|
++-------------+-------------------+---------------------+------------------------+-------------------+-------------------+
+|            1|                  1|                  957|                  299.98|                  1|             299.98|
+|            2|                  2|                 1073|                  199.99|                  1|             199.99|
+|            3|                  2|                  502|                    50.0|                  5|              250.0|
+
+
+oi_df.createOrReplaceTempView('oi_df')
+
+#find top selling product (based on quantity)using order_items
+top_prds_qtys=spark.sql("""select order_item_product_id,sum(order_item_quantity) as total_qty from oi_df group by order_item_product_id having total_qty >=10000 order by total_qty desc""")
+
+top_prds_qtys.show(10,False)
+
++---------------------+---------+                                               
+|order_item_product_id|total_qty|
++---------------------+---------+
+|365                  |73698    |
+|502                  |62956    |
+|1014                 |57803    |
+|191                  |36680    |
+|627                  |31735    |
+|403                  |22246    |
+|1004                 |17325    |
+|1073                 |15500    |
+|957                  |13729    |
++---------------------+---------+
+
+top_prds_qtys.createOrReplaceTempView('top_prds_qtys')
+
+products_df=spark.read.json('s3://ngap-idp-cdtbi-us-west-2/dev/idp-aggregated/test/data/retail_db_json/products/')
+products_df.show(5,False)
+
++-------------------+-------------------+----------+-------------------------------------------------------------------------------------+---------------------------------------------+-------------+
+|product_category_id|product_description|product_id|product_image                                                                        |product_name                                 |product_price|
++-------------------+-------------------+----------+-------------------------------------------------------------------------------------+---------------------------------------------+-------------+
+|2                  |                   |1         |http://images.acmesports.sports/Quest+Q64+10+FT.+x+10+FT.+Slant+Leg+Instant+Up+Canopy|Quest Q64 10 FT. x 10 FT. Slant Leg Instant U|59.98        |
+|2                  |                   |2         |http://images.acmesports.sports/Under+Armour+Men%27s+Highlight+MC+Football+Cleat     |Under Armour Men's Highlight MC Football Clea|129.99       |
+|2                  |                   |3         |http://images.acmesports.sports/Under+Armour+Men%27s+Renegade+D+Mid+Football+Cleat   |Under Armour Men's Renegade D Mid Football Cl|89.99        |
+|2                  |                   |4         |http://images.acmesports.sports/Under+Armour+Men%27s+Renegade+D+Mid+Football+Cleat   |Under Armour Men's Renegade D Mid Football Cl|89.99        |
+|2                  |                   |5         |http://images.acmesports.sports/Riddell+Youth+Revolution+Speed+Custom+Football+Helmet|Riddell Youth Revolution Speed Custom Footbal|199.99       |
++-------------------+-------------------+----------+-------------------------------------------------------------------------------------+---------------------------------------------+-------------+
+
+products_df.createOrReplaceTempView('products_df')
+
+
+top_prdsname_byqty=spark.sql("""select p.product_name, p.product_category_id,tpq.total_qty from products_df p inner join top_prds_qtys tpq on p.product_id=tpq.order_item_product_id  order by tpq.total_qty desc""")
+
+top_prdsname_byqty.show()
+
++--------------------+-------------------+---------+                            
+|        product_name|product_category_id|total_qty|
++--------------------+-------------------+---------+
+|Perfect Fitness P...|                 17|    73698|
+|Nike Men's Dri-FI...|                 24|    62956|
+|O'Brien Men's Neo...|                 46|    57803|
+|Nike Men's Free 5...|                  9|    36680|
+|Under Armour Girl...|                 29|    31735|
+|Nike Men's CJ Eli...|                 18|    22246|
+|Field & Stream Sp...|                 45|    17325|
+|Pelican Sunstream...|                 48|    15500|
+|Diamondback Women...|                 43|    13729|
++--------------------+-------------------+---------+
+top_prdsname_byqty.createOrReplaceTempView('top_prdsname_byqty')
+
+#also find the category name associated with productname.
+
+cat_df=spark.read.json('s3://ngap-idp-cdtbi-us-west-2/dev/idp-aggregated/test/data/retail_db_json/categories/')
+cat_df.show(5,False)
+
++----------------------+-----------+-------------------+
+|category_department_id|category_id|category_name      |
++----------------------+-----------+-------------------+
+|2                     |1          |Football           |
+|2                     |2          |Soccer             |
+|2                     |3          |Baseball & Softball|
+|2                     |4          |Basketball         |
+|2                     |5          |Lacrosse           |
++----------------------+-----------+-------------------+
+
+cat_df.createOrReplaceTempView('cat_df')
+
+top_prdsname_withcatname_byqty=spark.sql("""select tpqc.product_name,tpqc.total_qty,cat.category_name from top_prdsname_byqty tpqc join cat_df cat on tpqc.product_category_id=cat.category_id order by  tpqc.total_qty desc""")
+
+top_prdsname_withcatname_byqty.show(5,False)
+
++---------------------------------------------+---------+--------------------+  
+|product_name                                 |total_qty|category_name       |
++---------------------------------------------+---------+--------------------+
+|Perfect Fitness Perfect Rip Deck             |73698    |Cleats              |
+|Nike Men's Dri-FIT Victory Golf Polo         |62956    |Women's Apparel     |
+|O'Brien Men's Neoprene Life Vest             |57803    |Indoor/Outdoor Games|
+|Nike Men's Free 5.0+ Running Shoe            |36680    |Cardio Equipment    |
+|Under Armour Girls' Toddler Spine Surge Runni|31735    |Shop By Sport       |
++---------------------------------------------+---------+--------------------+
+
+
+
+
+
+#find top selling product (based on quantity)using order_items with product name and cat name in one sql
+
+
+top_prdsname_catname_byqty=spark.sql("select p.product_name,sum(oi.order_item_quantity) as total_qty,cat.category_name \
+from oi_df oi \
+inner join products_df p  \
+on oi.order_item_product_id=p.product_id \
+inner join  cat_df cat \
+on p.product_category_id = cat.category_id \
+group by  p.product_name,cat.category_name order by total_qty desc""")
+
++--------------------+---------+--------------------+                           
+|        product_name|total_qty|       category_name|
++--------------------+---------+--------------------+
+|Perfect Fitness P...|    73698|              Cleats|
+|Nike Men's Dri-FI...|    62956|     Women's Apparel|
+|O'Brien Men's Neo...|    57803|Indoor/Outdoor Games|
+|Nike Men's Free 5...|    36680|    Cardio Equipment|
+|Under Armour Girl...|    31735|       Shop By Sport|
+|Nike Men's CJ Eli...|    22246|      Men's Footwear|
+|Field & Stream Sp...|    17325|             Fishing|
+|Pelican Sunstream...|    15500|        Water Sports|
+|Diamondback Women...|    13729|    Camping & Hiking|
+|ENO Atlas Hammock...|      998|  Hunting & Shooting|
+|Nike Men's Comfor...|      991|    Tennis & Racquet|
+|adidas Youth Germ...|      969|      Girls' Apparel|
+|Team Golf St. Lou...|      958|         Accessories|
+|LIJA Women's Eyel...|      946|          Golf Shoes|
+|Glove It Women's ...|      941|          Golf Balls|
+|adidas Men's F10 ...|      939| Baseball & Softball|
+|Glove It Imperial...|      930|            Trade-In|
+|Glove It Women's ...|      930|            Trade-In|
+|Bridgestone e6 St...|      928|         Electronics|
+|Columbia Men's PF...|      928|       Shop By Sport|
++--------------------+---------+--------------------+
+
+
+
+
+#get category_name,revenue for each category for each day
+
+o_df=spark.read.json('s3://ngap-idp-cdtbi-us-west-2/dev/idp-aggregated/test/data/retail_db_json/orders/')
+o_df.show()
++-----------------+--------------------+--------+---------------+               
+|order_customer_id|          order_date|order_id|   order_status|
++-----------------+--------------------+--------+---------------+
+|            11599|2013-07-25 00:00:...|       1|         CLOSED|
+|              256|2013-07-25 00:00:...|       2|PENDING_PAYMENT|
+|            12111|2013-07-25 00:00:...|       3|       COMPLETE|
+|             8827|2013-07-25 00:00:...|       4|         CLOSED|
+|            11318|2013-07-25 00:00:...|       5|       COMPLETE|
+|             7130|2013-07-25 00:00:...|       6|       COMPLETE|
+|             4530|2013-07-25 00:00:...|       7|       COMPLETE|
+|             2911|2013-07-25 00:00:...|       8|     PROCESSING|
+|             5657|2013-07-25 00:00:...|       9|PENDING_PAYMENT|
+|             5648|2013-07-25 00:00:...|      10|PENDING_PAYMENT|
+|              918|2013-07-25 00:00:...|      11| PAYMENT_REVIEW|
+|             1837|2013-07-25 00:00:...|      12|         CLOSED|
+|             9149|2013-07-25 00:00:...|      13|PENDING_PAYMENT|
+|             9842|2013-07-25 00:00:...|      14|     PROCESSING|
+|             2568|2013-07-25 00:00:...|      15|       COMPLETE|
+|             7276|2013-07-25 00:00:...|      16|PENDING_PAYMENT|
+|             2667|2013-07-25 00:00:...|      17|       COMPLETE|
+|             1205|2013-07-25 00:00:...|      18|         CLOSED|
+|             9488|2013-07-25 00:00:...|      19|PENDING_PAYMENT|
+|             9198|2013-07-25 00:00:...|      20|     PROCESSING|
++-----------------+--------------------+--------+---------------+
+
+
+o_df.createOrReplaceTempView('o_df')
+
+
+#Get category_name,revenue for each category for each day
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+o_df=spark.read.json('s3://ngap-idp-cdtbi-us-west-2/dev/idp-aggregated/test/data/retail_db_json/orders/')
+o_df.show()
+o_df.createOrReplaceTempView('o_df')
+
+oi_df=spark.read.json('s3://ngap-idp-cdtbi-us-west-2/dev/idp-aggregated/test/data/retail_db_json/order_items/')
+oi_df.show()
+oi_df.createOrReplaceTempView('oi_df')
+
+products_df=spark.read.json('s3://ngap-idp-cdtbi-us-west-2/dev/idp-aggregated/test/data/retail_db_json/products/')
+products_df.show(5,False)
+products_df.createOrReplaceTempView('products_df')
+
+cat_df=spark.read.json('s3://ngap-idp-cdtbi-us-west-2/dev/idp-aggregated/test/data/retail_db_json/categories/')
+cat_df.show(5,False)
+cat_df.createOrReplaceTempView('cat_df')
+
+
+rev_by_catname=spark.sql("""select o.order_date,cat.category_name,sum(oi.order_item_subtotal) as daily_revenue \
+from  o_df o \
+inner join oi_df oi \
+on o.order_id=oi.order_item_order_id \
+inner join products_df p \
+on oi.order_item_product_id = p.product_id \
+inner join cat_df cat \
+on p.product_category_id= cat.category_id \
+group by o.order_date ,cat.category_name \
+order by o.order_date, daily_revenue desc""")
+
+rev_by_catname.show()
+
+#now get top 5 cats based on total quantity .....
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+top5cats_byqty = spark.sql("""select q.category_name,q.product_name,q.total_qty,
+rank() over(partition by q.category_name order by q.total_qty desc) rank \
+from
+(select cat.category_name,p.product_name, sum(oi.order_item_quantity) as total_qty \
+from oi_df oi \
+join products_df p \
+on oi.order_item_product_id=p.product_id \
+join cat_df cat \
+on p.product_category_id=cat.category_id \
+group  by cat.category_name,product_name \
+order by total_qty desc) q""")
+
+from pyspark.sql import Row
+import pyspark.sql.functions as f
+
+top5cats_byqty.where(f.col("rank") <= 5 ).show()
+
+top5cats_byqty = spark.sql("""select * from (
+select q.category_name,q.product_name,q.total_qty,
+rank() over(partition by q.category_name order by q.total_qty desc) rank \
+from
+(select cat.category_name,p.product_name, sum(oi.order_item_quantity) as total_qty \
+from oi_df oi \
+join products_df p \
+on oi.order_item_product_id=p.product_id \
+join cat_df cat \
+on p.product_category_id=cat.category_id \
+group  by cat.category_name,product_name \
+order by total_qty desc) q) where rank <=5 """)
+
+
+
+top5cats_byqty.show(40,False)
++-------------------+---------------------------------------------+---------+----+
+|category_name      |product_name                                 |total_qty|rank|
++-------------------+---------------------------------------------+---------+----+
+|Men's Golf Clubs   |Merrell Women's Grassbow Sport Hiking Shoe   |207      |1   |
+|Men's Golf Clubs   |Merrell Men's All Out Flash Trail Running Sho|85       |2   |
+|Men's Golf Clubs   |Merrell Women's Siren Mid Waterproof Hiking B|70       |3   |
+|Men's Golf Clubs   |Merrell Women's Grassbow Sport Waterproof Hik|58       |4   |
+|Camping & Hiking   |Diamondback Women's Serene Classic Comfort Bi|13729    |1   |
+|Fitness Accessories|Under Armour Hustle Storm Medium Duffle Bag  |846      |1   |
+|Fitness Accessories|Bowflex SelectTech 1090 Dumbbells            |10       |2   |
+|Golf Shoes         |LIJA Women's Eyelet Sleeveless Golf Polo     |946      |1   |
+|Golf Shoes         |LIJA Women's Mid-Length Panel Golf Shorts    |227      |2   |
+|Golf Shoes         |LIJA Women's Argyle Golf Polo                |195      |3   |
+|Golf Shoes         |LIJA Women's Button Golf Dress               |76       |4   |
+|Basketball         |Diamondback Boys' Insight 24 Performance Hybr|29       |1   |
+|Basketball         |Diamondback Girls' Clarity 24 Hybrid Bike 201|28       |2   |
+|Basketball         |SOLE E25 Elliptical                          |10       |3   |
+|Men's Footwear     |Nike Men's CJ Elite 2 TD Football Cleat      |22246    |1   |
+|Electronics        |Bridgestone e6 Straight Distance NFL Carolina|928      |1   |
+|Electronics        |Under Armour Women's Ignite Slide            |919      |2   |
+|Electronics        |Titleist Pro V1x High Numbers Personalized Go|908      |3   |
+|Electronics        |Bridgestone e6 Straight Distance NFL San Dieg|906      |4   |
+|Electronics        |Titleist Pro V1x Golf Balls                  |863      |5   |
+|Electronics        |Titleist Pro V1 High Numbers Personalized Gol|851      |6   |
+|Electronics        |Under Armour Women's Ignite PIP VI Slide     |848      |7   |
+|Electronics        |Under Armour Men's Compression EV SL Slide   |813      |8   |
+|Electronics        |Bridgestone e6 Straight Distance NFL Tennesse|805      |9   |
+|Electronics        |Titleist Pro V1x High Numbers Golf Balls     |800      |10  |
+|Electronics        |Under Armour Kids' Mercenary Slide           |795      |11  |
+|Women's Apparel    |Nike Men's Dri-FIT Victory Golf Polo         |62956    |1   |
+|Girls' Apparel     |adidas Youth Germany Black/Red Away Match Soc|969      |1   |
+|Girls' Apparel     |Nike Men's Deutschland Weltmeister Winners Bl|907      |2   |
+|Girls' Apparel     |TYR Boys' Team Digi Jammer                   |880      |3   |
+|Girls' Apparel     |adidas Men's Germany Black Crest Away Tee    |859      |4   |
+|Golf Bags & Carts  |Ogio Race Golf Shoes                         |61       |1   |
+|As Seen on  TV!    |Nike Men's Free TR 5.0 TB Training Shoe      |206      |1   |
+|Boxing & MMA       |Under Armour Women's Micro G Skulpt Running S|847      |1   |
+|Boxing & MMA       |Brooks Women's Ghost 6 Running Shoe          |212      |2   |
+|Boxing & MMA       |Nike Women's Free 5.0 TR FIT PRT 4 Training S|206      |3   |
+|Baseball & Softball|adidas Men's F10 Messi TRX FG Soccer Cleat   |939      |1   |
+|Baseball & Softball|adidas Kids' F5 Messi FG Soccer Cleat        |781      |2   |
+|Baseball & Softball|adidas Brazuca 2014 Official Match Ball      |65       |3   |
+|Hunting & Shooting |ENO Atlas Hammock Straps                     |998      |1   |
++-------------------+---------------------------------------------+---------+----+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

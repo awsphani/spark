@@ -375,3 +375,369 @@ users = [
 import pandas as pd
 spark.createDataFrame(pd.DataFrame(users)).show()
 
+
+#14 Array Type Columns in Spark Dataframes
+
+import datetime
+users = [
+    {
+        "id": 1,
+        "first_name": "Corrie",
+        "last_name": "Van den Oord",
+        "email": "cvandenoord0@etsy.com",
+        "phone_numbers": ["+1 234 567 8901", "+1 234 567 8911"],
+        "is_customer": True,
+        "amount_paid": 1000.55,
+        "customer_from": datetime.date(2021, 1, 15),
+        "last_updated_ts": datetime.datetime(2021, 2, 10, 1, 15, 0)
+    },
+    {
+        "id": 2,
+        "first_name": "Nikolaus",
+        "last_name": "Brewitt",
+        "email": "nbrewitt1@dailymail.co.uk",
+        "phone_numbers": ["+1 234 567 8923", "+1 234 567 8934"],
+        "is_customer": True,
+        "amount_paid": 900.0,
+        "customer_from": datetime.date(2021, 2, 14),
+        "last_updated_ts": datetime.datetime(2021, 2, 18, 3, 33, 0)
+    },
+    {
+        "id": 3,
+        "first_name": "Orelie",
+        "last_name": "Penney",
+        "email": "openney2@vistaprint.com",
+        "phone_numbers": ["+1 714 512 9752", "+1 714 512 6601"],
+        "is_customer": True,
+        "amount_paid": 850.55,
+        "customer_from": datetime.date(2021, 1, 21),
+        "last_updated_ts": datetime.datetime(2021, 3, 15, 15, 16, 55)
+    },
+    {
+        "id": 4,
+        "first_name": "Ashby",
+        "last_name": "Maddocks",
+        "email": "amaddocks3@home.pl",
+        "phone_numbers": None,
+        "is_customer": False,
+        "amount_paid": None,
+        "customer_from": None,
+        "last_updated_ts": datetime.datetime(2021, 4, 10, 17, 45, 30)
+    },
+    {
+        "id": 5,
+        "first_name": "Kurt",
+        "last_name": "Rome",
+        "email": "krome4@shutterfly.com",
+        "phone_numbers": ["+1 817 934 7142"],
+        "is_customer": False,
+        "amount_paid": None,
+        "customer_from": None,
+        "last_updated_ts": datetime.datetime(2021, 4, 2, 0, 55, 18)
+    }
+]
+
+
+from pyspark.sql import Row
+users_df = spark.createDataFrame([Row(**user) for user in users])
+users_df.printSchema()
+'''
+root
+ |-- id: long (nullable = true)
+ |-- first_name: string (nullable = true)
+ |-- last_name: string (nullable = true)
+ |-- email: string (nullable = true)
+ |-- phone_numbers: array (nullable = true)
+ |    |-- element: string (containsNull = true)
+ |-- is_customer: boolean (nullable = true)
+ |-- amount_paid: double (nullable = true)
+ |-- customer_from: date (nullable = true)
+ |-- last_updated_ts: timestamp (nullable = true)
+'''
+users_df.select('id', 'phone_numbers').show(truncate=False)
+'''
++---+----------------------------------+
+|id |phone_numbers                     |
++---+----------------------------------+
+|1  |[+1 234 567 8901, +1 234 567 8911]|
+|2  |[+1 234 567 8923, +1 234 567 8934]|
+|3  |[+1 714 512 9752, +1 714 512 6601]|
+|4  |null                              |
+|5  |[+1 817 934 7142]                 |
++---+----------------------------------+
+
+'''
+
+
+from pyspark.sql.functions import explode
+
+users_df. \
+    withColumn('phone_number', explode('phone_numbers')). \
+    drop('phone_numbers'). \
+    show()
+
+'''
++---+----------+------------+--------------------+-----------+-----------+-------------+-------------------+---------------+
+| id|first_name|   last_name|               email|is_customer|amount_paid|customer_from|    last_updated_ts|   phone_number|
++---+----------+------------+--------------------+-----------+-----------+-------------+-------------------+---------------+
+|  1|    Corrie|Van den Oord|cvandenoord0@etsy...|       true|    1000.55|   2021-01-15|2021-02-10 01:15:00|+1 234 567 8901|
+|  1|    Corrie|Van den Oord|cvandenoord0@etsy...|       true|    1000.55|   2021-01-15|2021-02-10 01:15:00|+1 234 567 8911|
+|  2|  Nikolaus|     Brewitt|nbrewitt1@dailyma...|       true|      900.0|   2021-02-14|2021-02-18 03:33:00|+1 234 567 8923|
+|  2|  Nikolaus|     Brewitt|nbrewitt1@dailyma...|       true|      900.0|   2021-02-14|2021-02-18 03:33:00|+1 234 567 8934|
+|  3|    Orelie|      Penney|openney2@vistapri...|       true|     850.55|   2021-01-21|2021-03-15 15:16:55|+1 714 512 9752|
+|  3|    Orelie|      Penney|openney2@vistapri...|       true|     850.55|   2021-01-21|2021-03-15 15:16:55|+1 714 512 6601|
+|  5|      Kurt|        Rome|krome4@shutterfly...|      false|       null|         null|2021-04-02 00:55:18|+1 817 934 7142|
++---+----------+------------+--------------------+-----------+-----------+-------------+-------------------+---------------+
+
+'''
+
+from pyspark.sql.functions import explode_outer
+users_df. \
+    withColumn('phone_number', explode_outer('phone_numbers')). \
+    drop('phone_numbers'). \
+    show()
+'''
++---+----------+------------+--------------------+-----------+-----------+-------------+-------------------+---------------+
+| id|first_name|   last_name|               email|is_customer|amount_paid|customer_from|    last_updated_ts|   phone_number|
++---+----------+------------+--------------------+-----------+-----------+-------------+-------------------+---------------+
+|  1|    Corrie|Van den Oord|cvandenoord0@etsy...|       true|    1000.55|   2021-01-15|2021-02-10 01:15:00|+1 234 567 8901|
+|  1|    Corrie|Van den Oord|cvandenoord0@etsy...|       true|    1000.55|   2021-01-15|2021-02-10 01:15:00|+1 234 567 8911|
+|  2|  Nikolaus|     Brewitt|nbrewitt1@dailyma...|       true|      900.0|   2021-02-14|2021-02-18 03:33:00|+1 234 567 8923|
+|  2|  Nikolaus|     Brewitt|nbrewitt1@dailyma...|       true|      900.0|   2021-02-14|2021-02-18 03:33:00|+1 234 567 8934|
+|  3|    Orelie|      Penney|openney2@vistapri...|       true|     850.55|   2021-01-21|2021-03-15 15:16:55|+1 714 512 9752|
+|  3|    Orelie|      Penney|openney2@vistapri...|       true|     850.55|   2021-01-21|2021-03-15 15:16:55|+1 714 512 6601|
+|  4|     Ashby|    Maddocks|  amaddocks3@home.pl|      false|       null|         null|2021-04-10 17:45:30|           null|
+|  5|      Kurt|        Rome|krome4@shutterfly...|      false|       null|         null|2021-04-02 00:55:18|+1 817 934 7142|
++---+----------+------------+--------------------+-----------+-----------+-------------+-------------------+---------------+
+'''
+
+
+from pyspark.sql.functions import col
+
+users_df. \
+    select('id', col('phone_numbers')[0].alias('mobile'), col('phone_numbers')[1].alias('home')). \
+    show()
++---+---------------+---------------+
+| id|         mobile|           home|
++---+---------------+---------------+
+|  1|+1 234 567 8901|+1 234 567 8911|
+|  2|+1 234 567 8923|+1 234 567 8934|
+|  3|+1 714 512 9752|+1 714 512 6601|
+|  4|           null|           null|
+|  5|+1 817 934 7142|           null|
++---+---------------+---------------+
+
+#15 Map Type Columns in Spark Dataframes
+
+import datetime
+users = [
+    {
+        "id": 1,
+        "first_name": "Corrie",
+        "last_name": "Van den Oord",
+        "email": "cvandenoord0@etsy.com",
+        "phone_numbers": {"mobile": "+1 234 567 8901", "home": "+1 234 567 8911"},
+        "is_customer": True,
+        "amount_paid": 1000.55,
+        "customer_from": datetime.date(2021, 1, 15),
+        "last_updated_ts": datetime.datetime(2021, 2, 10, 1, 15, 0)
+    },
+    {
+        "id": 2,
+        "first_name": "Nikolaus",
+        "last_name": "Brewitt",
+        "email": "nbrewitt1@dailymail.co.uk",
+        "phone_numbers": {"mobile": "+1 234 567 8923", "home": "+1 234 567 8934"},
+        "is_customer": True,
+        "amount_paid": 900.0,
+        "customer_from": datetime.date(2021, 2, 14),
+        "last_updated_ts": datetime.datetime(2021, 2, 18, 3, 33, 0)
+    },
+    {
+        "id": 3,
+        "first_name": "Orelie",
+        "last_name": "Penney",
+        "email": "openney2@vistaprint.com",
+        "phone_numbers": {"mobile": "+1 714 512 9752", "home": "+1 714 512 6601"},
+        "is_customer": True,
+        "amount_paid": 850.55,
+        "customer_from": datetime.date(2021, 1, 21),
+        "last_updated_ts": datetime.datetime(2021, 3, 15, 15, 16, 55)
+    },
+    {
+        "id": 4,
+        "first_name": "Ashby",
+        "last_name": "Maddocks",
+        "email": "amaddocks3@home.pl",
+        "phone_numbers": None,
+        "is_customer": False,
+        "amount_paid": None,
+        "customer_from": None,
+        "last_updated_ts": datetime.datetime(2021, 4, 10, 17, 45, 30)
+    },
+    {
+        "id": 5,
+        "first_name": "Kurt",
+        "last_name": "Rome",
+        "email": "krome4@shutterfly.com",
+        "phone_numbers": {"mobile": "+1 817 934 7142"},
+        "is_customer": False,
+        "amount_paid": None,
+        "customer_from": None,
+        "last_updated_ts": datetime.datetime(2021, 4, 2, 0, 55, 18)
+    }
+]
+
+from pyspark.sql import Row
+users_df = spark.createDataFrame([Row(**user) for user in users])
+users_df.printSchema()
+'''
+root
+ |-- id: long (nullable = true)
+ |-- first_name: string (nullable = true)
+ |-- last_name: string (nullable = true)
+ |-- email: string (nullable = true)
+ |-- phone_numbers: map (nullable = true)
+ |    |-- key: string
+ |    |-- value: string (valueContainsNull = true)
+ |-- is_customer: boolean (nullable = true)
+ |-- amount_paid: double (nullable = true)
+ |-- customer_from: date (nullable = true)
+ |-- last_updated_ts: timestamp (nullable = true)
+'''
+
+users_df.select('id', 'phone_numbers').show(truncate=False)
+'''
++---+----------------------------------------------------+
+|id |phone_numbers                                       |
++---+----------------------------------------------------+
+|1  |{mobile -> +1 234 567 8901, home -> +1 234 567 8911}|
+|2  |{mobile -> +1 234 567 8923, home -> +1 234 567 8934}|
+|3  |{mobile -> +1 714 512 9752, home -> +1 714 512 6601}|
+|4  |null                                                |
+|5  |{mobile -> +1 817 934 7142}                         |
++---+----------------------------------------------------+
+'''
+from pyspark.sql.functions import col
+users_df. \
+    select('id', col('phone_numbers')['mobile'].alias('mobile'), col('phone_numbers')['home'].alias('home')). \
+    show()
+'''
++---+---------------+---------------+
+| id|         mobile|           home|
++---+---------------+---------------+
+|  1|+1 234 567 8901|+1 234 567 8911|
+|  2|+1 234 567 8923|+1 234 567 8934|
+|  3|+1 714 512 9752|+1 714 512 6601|
+|  4|           null|           null|
+|  5|+1 817 934 7142|           null|
++---+---------------+---------------+
+'''
+from pyspark.sql.functions import explode
+users_df.select('id', explode('phone_numbers')).show()
+'''
++---+------+---------------+
+| id|   key|          value|
++---+------+---------------+
+|  1|mobile|+1 234 567 8901|
+|  1|  home|+1 234 567 8911|
+|  2|mobile|+1 234 567 8923|
+|  2|  home|+1 234 567 8934|
+|  3|mobile|+1 714 512 9752|
+|  3|  home|+1 714 512 6601|
+|  5|mobile|+1 817 934 7142|
++---+------+---------------+
+'''
+
+from pyspark.sql.functions import explode_outer
+users_df.select('id', explode_outer('phone_numbers')).show()
+'''
++---+------+---------------+
+| id|   key|          value|
++---+------+---------------+
+|  1|mobile|+1 234 567 8901|
+|  1|  home|+1 234 567 8911|
+|  2|mobile|+1 234 567 8923|
+|  2|  home|+1 234 567 8934|
+|  3|mobile|+1 714 512 9752|
+|  3|  home|+1 714 512 6601|
+|  4|  null|           null|
+|  5|mobile|+1 817 934 7142|
++---+------+---------------+
+'''
+
+users_df.select('*', explode('phone_numbers')). \
+    withColumnRenamed('key', 'phone_type'). \
+    withColumnRenamed('value', 'phone_number'). \
+    drop('phone_numbers'). \
+    show()
+'''
++---+----------+------------+--------------------+-----------+-----------+-------------+-------------------+----------+---------------+
+| id|first_name|   last_name|               email|is_customer|amount_paid|customer_from|    last_updated_ts|phone_type|   phone_number|
++---+----------+------------+--------------------+-----------+-----------+-------------+-------------------+----------+---------------+
+|  1|    Corrie|Van den Oord|cvandenoord0@etsy...|       true|    1000.55|   2021-01-15|2021-02-10 01:15:00|    mobile|+1 234 567 8901|
+|  1|    Corrie|Van den Oord|cvandenoord0@etsy...|       true|    1000.55|   2021-01-15|2021-02-10 01:15:00|      home|+1 234 567 8911|
+|  2|  Nikolaus|     Brewitt|nbrewitt1@dailyma...|       true|      900.0|   2021-02-14|2021-02-18 03:33:00|    mobile|+1 234 567 8923|
+|  2|  Nikolaus|     Brewitt|nbrewitt1@dailyma...|       true|      900.0|   2021-02-14|2021-02-18 03:33:00|      home|+1 234 567 8934|
+|  3|    Orelie|      Penney|openney2@vistapri...|       true|     850.55|   2021-01-21|2021-03-15 15:16:55|    mobile|+1 714 512 9752|
+|  3|    Orelie|      Penney|openney2@vistapri...|       true|     850.55|   2021-01-21|2021-03-15 15:16:55|      home|+1 714 512 6601|
+|  5|      Kurt|        Rome|krome4@shutterfly...|      false|       null|         null|2021-04-02 00:55:18|    mobile|+1 817 934 7142|
++---+----------+------------+--------------------+-----------+-----------+-------------+-------------------+----------+---------------+
+'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 1:
+You need to create a Data Frame by specifying the schema for the following data. Which one of the following is the right answer. The schema should contain 2 fields with names id and first_name using data types INT and STRING respectively.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

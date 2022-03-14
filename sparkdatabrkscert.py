@@ -114,3 +114,81 @@ from pyspark.sql import Row
 users_rows = [Row(*user) for user in users_list] #[<Row(1, 'Scott')>, <Row(2, 'Donald')>, <Row(3, 'Mickey')>, <Row(4, 'Elvis')>]
 spark.createDataFrame(users_rows, 'user_id int, user_first_name string') #DataFrame[user_id: int, user_first_name: string]
 
+#06 Convert List of Tuples into Spark Dataframe using Row
+users_list = [(1, 'Scott'), (2, 'Donald'), (3, 'Mickey'), (4, 'Elvis')]
+spark.createDataFrame(users_list, 'user_id int, user_first_name string')
+
+from pyspark.sql import Row
+users_rows = [Row(*user) for user in users_list]
+spark.createDataFrame(users_rows, 'user_id int, user_first_name string')
+
+#07 Convert List of Dicts into Spark Dataframe using Row
+users_list = [
+    {'user_id': 1, 'user_first_name': 'Scott'},
+    {'user_id': 2, 'user_first_name': 'Donald'},
+    {'user_id': 3, 'user_first_name': 'Mickey'},
+    {'user_id': 4, 'user_first_name': 'Elvis'}
+]
+spark.createDataFrame(users_list) # DataFrame[user_first_name: string, user_id: bigint]
+# creating df from list of dicts will be deprecated so better convert to Row and create df
+from pyspark.sql import Row
+users_rows = [Row(*user.values()) for user in users_list] #using *args notation
+#Out[20]: [<Row(1, 'Scott')>, <Row(2, 'Donald')>, <Row(3, 'Mickey')>, <Row(4, 'Elvis')>]
+spark.createDataFrame(users_rows, 'user_id bigint, user_first_name string') #DataFrame[user_id: bigint, user_first_name: string]
+
+users_rows = [Row(**user) for user in users_list] #using **kwargs notation
+'''
+Out[10]: [Row(user_id=1, user_first_name='Scott'),
+ Row(user_id=2, user_first_name='Donald'),
+ Row(user_id=3, user_first_name='Mickey'),
+ Row(user_id=4, user_first_name='Elvis')]
+'''
+spark.createDataFrame(users_rows) # DataFrame[user_id: bigint, user_first_name: string]
+
+
+def dummy(**kwargs):
+    print(kwargs)
+    print(len(kwargs))
+user_details = {'user_id': 1, 'user_first_name': 'Scott'}
+
+dummy(**user_details) #unpacks dic
+'''
+{'user_id': 1, 'user_first_name': 'Scott'}
+2
+'''
+
+dummy(user_id=1, user_first_name='Scott')
+'''
+{'user_id': 1, 'user_first_name': 'Scott'}
+2
+'''
+
+dummy(user_details_ky=user_details)
+'''
+{'user_details_ky': {'user_id': 1, 'user_first_name': 'Scott'}}
+1
+'''
+#*args unpacks list or tuple
+def dummy(*args):
+    print(args)
+    print(len(args))
+
+user_details = (1, 'Scott')
+dummy(*user_details)
+'''
+(1, 'Scott')
+2
+'''
+
+user_details = [1, 'Scott']
+dummy(*user_details)
+'''
+(1, 'Scott')
+2
+'''
+
+dummy(user_details)
+
+([1, 'Scott'],)
+1
+

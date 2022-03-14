@@ -685,23 +685,142 @@ users_df.select('*', explode('phone_numbers')). \
 +---+----------+------------+--------------------+-----------+-----------+-------------+-------------------+----------+---------------+
 '''
 
+#16 Struct Type Columns in Spark Dataframes
 
+from pyspark.sql import Row
+import datetime
+users = [
+    {
+        "id": 1,
+        "first_name": "Corrie",
+        "last_name": "Van den Oord",
+        "email": "cvandenoord0@etsy.com",
+        "phone_numbers": Row(mobile="+1 234 567 8901", home="+1 234 567 8911"),
+        "is_customer": True,
+        "amount_paid": 1000.55,
+        "customer_from": datetime.date(2021, 1, 15),
+        "last_updated_ts": datetime.datetime(2021, 2, 10, 1, 15, 0)
+    },
+    {
+        "id": 2,
+        "first_name": "Nikolaus",
+        "last_name": "Brewitt",
+        "email": "nbrewitt1@dailymail.co.uk",
+        "phone_numbers":  Row(mobile="+1 234 567 8923", home="1 234 567 8934"),
+        "is_customer": True,
+        "amount_paid": 900.0,
+        "customer_from": datetime.date(2021, 2, 14),
+        "last_updated_ts": datetime.datetime(2021, 2, 18, 3, 33, 0)
+    },
+    {
+        "id": 3,
+        "first_name": "Orelie",
+        "last_name": "Penney",
+        "email": "openney2@vistaprint.com",
+        "phone_numbers": Row(mobile="+1 714 512 9752", home="+1 714 512 6601"),
+        "is_customer": True,
+        "amount_paid": 850.55,
+        "customer_from": datetime.date(2021, 1, 21),
+        "last_updated_ts": datetime.datetime(2021, 3, 15, 15, 16, 55)
+    },
+    {
+        "id": 4,
+        "first_name": "Ashby",
+        "last_name": "Maddocks",
+        "email": "amaddocks3@home.pl",
+        "phone_numbers": Row(mobile=None, home=None),
+        "is_customer": False,
+        "amount_paid": None,
+        "customer_from": None,
+        "last_updated_ts": datetime.datetime(2021, 4, 10, 17, 45, 30)
+    },
+    {
+        "id": 5,
+        "first_name": "Kurt",
+        "last_name": "Rome",
+        "email": "krome4@shutterfly.com",
+        "phone_numbers": Row(mobile="+1 817 934 7142", home=None),
+        "is_customer": False,
+        "amount_paid": None,
+        "customer_from": None,
+        "last_updated_ts": datetime.datetime(2021, 4, 2, 0, 55, 18)
+    }
+]
 
+users_df = spark.createDataFrame([Row(**user) for user in users])
+users_df.select('id', 'phone_numbers').show(truncate=False)
+'''
++---+----------------------------------+
+|id |phone_numbers                     |
++---+----------------------------------+
+|1  |{+1 234 567 8901, +1 234 567 8911}|
+|2  |{+1 234 567 8923, 1 234 567 8934} |
+|3  |{+1 714 512 9752, +1 714 512 6601}|
+|4  |{null, null}                      |
+|5  |{+1 817 934 7142, null}           |
++---+----------------------------------+
+'''
+users_df.dtypes
+'''
+[('id', 'bigint'),
+ ('first_name', 'string'),
+ ('last_name', 'string'),
+ ('email', 'string'),
+ ('phone_numbers', 'struct<mobile:string,home:string>'),
+ ('is_customer', 'boolean'),
+ ('amount_paid', 'double'),
+ ('customer_from', 'date'),
+ ('last_updated_ts', 'timestamp')]
+'''
 
+users_df. \
+    select('id', 'phone_numbers.mobile', 'phone_numbers.home'). \
+    show()
 
-
-
-
-
-
-
-
-
-
+#or
+users_df. \
+    select('id', 'phone_numbers.*'). \
+    show()
+'''
++---+---------------+---------------+
+| id|         mobile|           home|
++---+---------------+---------------+
+|  1|+1 234 567 8901|+1 234 567 8911|
+|  2|+1 234 567 8923| 1 234 567 8934|
+|  3|+1 714 512 9752|+1 714 512 6601|
+|  4|           null|           null|
+|  5|+1 817 934 7142|           null|
++---+---------------+---------------+
+'''
+from pyspark.sql.functions import col
+users_df. \
+    select('id', col('phone_numbers')['mobile'], col('phone_numbers')['home']). \
+    show()
+'''
++---+--------------------+------------------+
+| id|phone_numbers.mobile|phone_numbers.home|
++---+--------------------+------------------+
+|  1|     +1 234 567 8901|   +1 234 567 8911|
+|  2|     +1 234 567 8923|    1 234 567 8934|
+|  3|     +1 714 512 9752|   +1 714 512 6601|
+|  4|                null|              null|
+|  5|     +1 817 934 7142|              null|
++---+--------------------+------------------+
+'''
 
 
 Question 1:
 You need to create a Data Frame by specifying the schema for the following data. Which one of the following is the right answer. The schema should contain 2 fields with names id and first_name using data types INT and STRING respectively.
+
+
+schema= ['id INT', 'fn STRING']
+incorrect answer. Please try again.
+Even though Schema can be specified as list of strings, the data type will be inferred based on the data. When the schema is specified in this manner, the column names will be incorrect. The names will have data types as well and also there will be additional information related to data types which are inferred from the data.
+
+schema= ' id INT, fn STRING'
+Correct Answer, we should be able to define the schema as string. The string should contain column names and data types separated by comma (,).
+
+
 
 
 

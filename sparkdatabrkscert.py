@@ -279,4 +279,46 @@ users_df.dtypes
  ('last_updated_ts', 'timestamp')]
 '''
 
+#09 Specifying Schema for Spark Dataframe using String
+users_schema = '''
+    id INT,
+    first_name STRING,
+    last_name STRING,
+    email STRING,
+    is_customer BOOLEAN,
+    amount_paid FLOAT,
+    customer_from DATE,
+    last_updated_ts TIMESTAMP
+'''
+spark.createDataFrame(users, schema=users_schema)
 
+#10 Specifying Schema for Spark Dataframe using List
+users_schema = [
+    'id INT',
+    'first_name STRING',
+    'last_name STRING',
+    'email STRING',
+    'is_customer BOOLEAN',
+    'amount_paid FLOAT',
+    'customer_from DATE',
+    'last_updated_ts TIMESTAMP'
+]
+spark.createDataFrame(users, schema=users_schema)
+
+#11 Specifying Schema using Spark Types
+from pyspark.sql.types import *
+users_schema = StructType([
+    StructField('id', IntegerType()),
+    StructField('first_name', StringType()),
+    StructField('last_name', StringType()),
+    StructField('email', StringType()),
+    StructField('is_customer', BooleanType()),
+    StructField('amount_paid', FloatType()),
+    StructField('customer_from', DateType()),
+    StructField('last_updated_ts', TimestampType())
+])
+spark.createDataFrame(users, schema=users_schema)
+
+spark.createDataFrame(users, schema=users_schema).rdd.collect()#convert df to rdd and then to list of Row objects
+
+#12 Create Spark Dataframe using Pandas Dataframe

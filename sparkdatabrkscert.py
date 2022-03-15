@@ -911,25 +911,110 @@ users_df.show()
 
 
 
+#03 Overview of Narrow and Wide Transformations
+'''
+
+    Here are the functions related to narrow transformations. Narrow transformations doesn't result in shuffling. These are also known as row level transformations.
+        df.select
+        df.filter
+        df.withColumn
+        df.withColumnRenamed
+        df.drop
+    Here are the functions related to wide transformations.
+        df.distinct
+        df.union or any set operation
+        df.join or any join operation
+        df.groupBy
+        df.sort or df.orderBy
+    Any function that result in shuffling is wide transformation. For all the wide transformations, we have to deal with group of records based on a key.
+
+'''
+
+#04 Overview of Select on Spark Data Frame
+
+%run "./02 Creating Spark Data Frame to Select and Rename Columns"
+help(users_df.select)
+'''
+select(*cols) method of pyspark.sql.dataframe.DataFrame instance
+    Projects a set of expressions and returns a new :class:`DataFrame`.
+    
+    .. versionadded:: 1.3.0
+    
+    Parameters
+    ----------
+    cols : str, :class:`Column`, or list
+        column names (string) or expressions (:class:`Column`).
+        If one of the column names is '*', that column is expanded to include all columns
+        in the current :class:`DataFrame`.
+    
+    Examples
+    --------
+    >>> df.select('*').collect()
+    [Row(age=2, name='Alice'), Row(age=5, name='Bob')]
+    >>> df.select('name', 'age').collect()
+    [Row(name='Alice', age=2), Row(name='Bob', age=5)]
+    >>> df.select(df.name, (df.age + 10).alias('age')).collect()
+    [Row(name='Alice', age=12), Row(name='Bob', age=15)]
+
+'''
+
+users_df.select('*').show()
+users_df.select('id', 'first_name', 'last_name').show()
+users_df.select(['id', 'first_name', 'last_name']).show()
+
+# Defining alias to the dataframe
+users_df.alias('u').select('u.*').show()
+users_df.alias('u').select('u.id', 'u.first_name', 'u.last_name').show()
+
+from pyspark.sql.functions import col
+users_df.select(col('id'), 'first_name', 'last_name').show()
+
+from pyspark.sql.functions import col, concat, lit
+users_df.select(
+    col('id'), 
+    'first_name', 
+    'last_name',
+    concat(col('first_name'), lit(', '), col('last_name')).alias('full_name')
+).show()
 
 
+#05 Overview of selectExpr on Spark Data Frame
+
+help(users_df.selectExpr)
+'''
+selectExpr(*expr) method of pyspark.sql.dataframe.DataFrame instance
+    Projects a set of SQL expressions and returns a new :class:`DataFrame`.
+    This is a variant of :func:`select` that accepts SQL expressions.
+ Examples
+    --------
+    >>> df.selectExpr("age * 2", "abs(age)").collect()
+    [Row((age * 2)=4, abs(age)=2), Row((age * 2)=10, abs(age)=5)]
+'''
+#pass arthimetic expressions or sql functions not pyspark sql funcs
+
+#mostly same as select
+
+users_df.selectExpr('*').show()
+# Defining alias to the dataframe
+users_df.alias('u').selectExpr('u.*').show()
+
+users_df.selectExpr('id', 'first_name', 'last_name').show()
+users_df.selectExpr(['id', 'first_name', 'last_name']).show()
 
 
+# Using selectExpr to use Spark SQL Functions, no need of any import for selectExpr
+users_df.selectExpr('id', 'first_name', 'last_name', "concat(first_name, ', ', last_name) AS full_name").show()
 
+#equivalent of above using select
+users_df. \
+    select(
+        'id', 'first_name', 'last_name', 
+        concat(col('first_name'), lit(', '), col('last_name')).alias('full_name')
+    ). \
+    show()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+users_df.createOrReplaceTempView('users')
+spark.sql("""SELECT id, first_name, last_name,concat(first_name, ', ', last_name) AS full_name FROM users"""). show()
 
 
 

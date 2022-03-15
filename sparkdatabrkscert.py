@@ -1111,5 +1111,157 @@ users_df.select(*cols).show()
 +---+-------------+
 '''
 
+#08 Invoking Functions using Spark Column Objects
+from pyspark.sql.functions import col, lit, concat
+full_name_col = concat(col('first_name'), lit(', '), col('last_name'))
+full_name_alias = full_name_col.alias('full_name')
+users_df.select('id', full_name_alias).show()
+'''
++---+--------------------+
+| id|           full_name|
++---+--------------------+
+|  1|Corrie, Van den Oord|
+|  2|   Nikolaus, Brewitt|
+|  3|      Orelie, Penney|
+|  4|     Ashby, Maddocks|
+|  5|          Kurt, Rome|
++---+--------------------+
+'''
 
+#Convert data type of customer_from date to numeric type
+from pyspark.sql.functions import date_format
+customer_from_alias = date_format('customer_from', 'yyyyMMdd').cast('int').alias('customer_from')
+users_df.select('id', customer_from_alias).show()
 
+#09 Understanding lit function in Spark
+
+from pyspark.sql.functions import lit,col
+
+# lit returns column type
+lit(25.0) #Out[24]: Column<'25.0'>
+
+users_df.createOrReplaceTempView('users')
+spark.sql("""
+    SELECT id, (amount_paid + 25) AS amount_paid
+    FROM users
+"""). \
+    show()
+
+users_df. \
+    selectExpr('id', '(amount_paid + 25) AS amount_paid'). \
+    show()
+
+#use col() and lit toagther to avoid errors when we add to numerics to coulumns
+users_df.select('id', col('amount_paid') + lit(25.0)).show()
+
+# This will fail
+users_df.select('id', 'amount_paid' + 25).show()
+# This will also fail
+users_df.select('id', 'amount_paid' + '25').show()
+    
+# 10 Overview of Renaming Spark Data Frame Columns or Expressions 
+'''
+There are multiple ways to rename Spark Data Frame Columns or Expressions.
+
+    We can rename column or expression using alias as part of select
+    We can add or rename column or expression using withColumn on top of Data Frame.
+    We can rename one column at a time using withColumnRenamed on top of Data Frame.
+    We typically use withColumn to perform row level transformations and then to provide a name to the result. If we provide the same name as existing column, then the column will be replaced with new one.
+    If we want to just rename the column then it is better to use withColumnRenamed.
+    If we want to apply any transformation, we need to either use select or withColumn
+    We can rename bunch of columns using toDF.
+'''
+
+#11 Naming derived columns using withColumn
+help(users_df.withColumn)
+'''
+withColumn(colName, col) method of pyspark.sql.dataframe.DataFrame instance
+    Returns a new :class:`DataFrame` by adding a column or replacing the
+    existing column that has the same name.
+    
+    The column expression must be an expression over this :class:`DataFrame`; attempting to add
+    a column from some other :class:`DataFrame` will raise an error.
+    
+    .. versionadded:: 1.3.0
+    
+    Parameters
+    ----------
+    colName : str
+        string, name of the new column.
+    col : :class:`Column`
+        a :class:`Column` expression for the new column.
+    
+    Notes
+    -----
+    This method introduces a projection internally. Therefore, calling it multiple
+    times, for instance, via loops in order to add multiple columns can generate big
+    plans which can cause performance issues and even `StackOverflowException`.
+    To avoid this, use :func:`select` with the multiple columns at once.
+    
+    Examples
+    --------
+    >>> df.withColumn('age2', df.age + 2).collect()
+    [Row(age=2, name='Alice', age2=4), Row(age=5, name='Bob', age2=7)]
+
+'''
+from pyspark.sql.functions import col
+users_df. \
+    select('id', 'first_name', 'last_name'). \
+    withColumn('firnm', users_df['first_name']). \
+    show()
+
+from pyspark.sql.functions import concat, lit
+users_df. \
+    select('id', 'first_name', 'last_name'). \
+    withColumn('full_name', concat('first_name', lit(', '), 'last_name')). \
+    show()
+
+# Equivalent logic using select
+users_df. \
+    select(
+        'id', 'first_name', 'last_name',
+        concat('first_name', lit(', '), 'last_name').alias('full_name')
+    ). \
+    show()
+
+#12 Renaming Columns using withColumnRenamed
+
+help(users_df.withColumnRenamed)
+'''
+Help on method withColumnRenamed in module pyspark.sql.dataframe:
+
+withColumnRenamed(existing, new) method of pyspark.sql.dataframe.DataFrame instance
+    Returns a new :class:`DataFrame` by renaming an existing column.
+    This is a no-op if schema doesn't contain the given column name.
+    
+    .. versionadded:: 1.3.0
+    
+    Parameters
+    ----------
+    existing : str
+        string, name of the existing column to rename.
+    new : str
+        string, new name of the column.
+    
+    Examples
+    --------
+    >>> df.withColumnRenamed('age', 'age2').collect()
+    [Row(age2=2, name='Alice'), Row(age2=5, name='Bob')]
+'''
+
+'''
+
+    Rename id to user_id
+    Rename first_name to user_first_name
+    Rename last_name to user_last_name
+
+'''
+
+users_df. \
+    select('id', 'first_name', 'last_name'). \
+    withColumnRenamed('id', 'user_id'). \
+    withColumnRenamed('first_name', 'user_first_name'). \
+    withColumnRenamed('last_name', 'user_last_name'). \
+    show()
+
+#withColumn column is added at the end, withColumnRenamed same order is preserved after renaming

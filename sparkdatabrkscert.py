@@ -1017,9 +1017,99 @@ users_df.createOrReplaceTempView('users')
 spark.sql("""SELECT id, first_name, last_name,concat(first_name, ', ', last_name) AS full_name FROM users"""). show()
 
 
+#06 Referring Columns using Spark Data Frame Names
+
+users_df['id']  #Out[7]: Column<'id'>
+type(users_df['id'])   #pyspark.sql.column.Column
+
+from pyspark.sql.functions import col
+col('id')    #Out[7]: Column<'id'>
+
+users_df.select('id', col('first_name'), 'last_name').show()
+
+#with select can refer column using users_df['id'] notation
+users_df.select(users_df['id'], col('first_name'), 'last_name').show()
+
+users_df. \
+    select(
+        'id', 'first_name', 'last_name', 
+        concat(users_df['first_name'], lit(', '), col('last_name')).alias('full_name')
+    ). \
+    show()
 
 
+#below will work .notation for alias
+users_df.alias('u').select('u.id', col('first_name'), 'last_name').show()
 
+# below does not work as there is no object by name u in this session.
+users_df.alias('u').select(u['id'], col('first_name'), 'last_name').show() #NameError: name 'u' is not defined
+
+
+# Using selectExpr to use Spark SQL Functions
+users_df.alias('u').selectExpr('id', 'first_name', 'last_name', "concat(u.first_name, ', ', u.last_name) AS full_name").show()
+
+# This does not work as selectExpr can only take column names or SQL style expressions on column names
+users_df.selectExpr(col('id'), 'first_name', 'last_name').show() #TypeError: Column is not iterable
+
+
+users_df.createOrReplaceTempView('users')
+spark.sql("""
+    SELECT id, first_name, last_name,
+        concat(u.first_name, ', ', u.last_name) AS full_name
+    FROM users AS u
+"""). \
+    show()
+
+#07 Understanding col function in Spark
+from pyspark.sql.functions import col
+cols = ['id', 'first_name', 'last_name']
+users_df.select(*cols).show()
+
+help(col)
+'''
+col(col)
+    Returns a :class:`~pyspark.sql.Column` based on the given column name.'
+    Examples
+    --------
+    >>> col('x')
+    Column<'x'>
+    >>> column('x')
+    Column<'x'>
+'''
+
+user_id = col('id')
+users_df.select(user_id).show()
+
+'''
+There are quite a few functions available on top of column type
+
+    cast (can be used on all important data frame functions such as select, filter, groupBy, orderBy, etc)
+    asc, desc (typically used as part of sort or orderBy)
+    contains (typically used as part of filter or where)
+
+
+'''
+
+#ex using cast func on customer_from col
+users_df.select(
+    col('id'), 
+    date_format('customer_from', 'yyyyMMdd').cast('int').alias('customer_from')
+).show()
+
+
+cols = [col('id'), date_format('customer_from', 'yyyyMMdd').cast('int').alias('customer_from')]
+users_df.select(*cols).show()
+'''
++---+-------------+
+| id|customer_from|
++---+-------------+
+|  1|     20210115|
+|  2|     20210214|
+|  3|     20210121|
+|  4|         null|
+|  5|         null|
++---+-------------+
+'''
 
 
 

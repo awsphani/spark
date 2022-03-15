@@ -1265,3 +1265,67 @@ users_df. \
     show()
 
 #withColumn column is added at the end, withColumnRenamed same order is preserved after renaming
+
+#13 Renaming Spark Data Frame columns or expressions using alias
+# Using select
+users_df. \
+    select(
+        col('id').alias('user_id'),
+        col('first_name').alias('user_first_name'),
+        col('last_name').alias('user_last_name'),
+        concat(col('first_name'), lit(', '), col('last_name')).alias('user_full_name')
+    ). \
+    show()
+
+users_df. \
+    select(
+        users_df['id'].alias('user_id'),
+        users_df['first_name'].alias('user_first_name'),
+        users_df['last_name'].alias('user_last_name'),
+        concat(users_df['first_name'], lit(', '), users_df['last_name']).alias('user_full_name')
+    ). \
+    show()
+
+# Using withColumn and alias (first select and then withColumn)
+users_df. \
+    select(
+        users_df['id'].alias('user_id'),
+        users_df['first_name'].alias('user_first_name'),
+        users_df['last_name'].alias('user_last_name')
+    ). \
+    withColumn('user_full_name', concat(col('user_first_name'), lit(', '), col('user_last_name'))). \
+    show()
+
+# Using withColumn and alias (first withColumn and then select)
+users_df. \
+    withColumn('user_full_name', concat(col('first_name'), lit(', '), col('last_name'))). \
+    select(
+        users_df['id'].alias('user_id'),
+        users_df['first_name'].alias('user_first_name'),
+        users_df['last_name'].alias('user_last_name'),
+        'user_full_name'
+    ). \
+    show()
+
+users_df. \
+    withColumn('user_full_name', concat(users_df['first_name'], lit(', '), users_df['last_name'])). \
+    select(
+        users_df['id'].alias('user_id'),
+        users_df['first_name'].alias('user_first_name'),
+        users_df['last_name'].alias('user_last_name'),
+        'user_full_name'
+    ). \
+    show()
+
+#14 Renaming and Reordering multiple Spark Data Frame Columns
+
+# required columns from original list
+required_columns = ['id', 'first_name', 'last_name', 'email', 'phone_numbers', 'courses']
+
+# new column name list
+target_column_names = ['user_id', 'user_first_name', 'user_last_name', 'user_email', 'user_phone_numbers', 'enrolled_courses']
+
+users_df. \
+    select(required_columns). \
+    toDF(*target_column_names). \
+    show()

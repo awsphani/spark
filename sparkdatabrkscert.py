@@ -1329,3 +1329,36 @@ users_df. \
     select(required_columns). \
     toDF(*target_column_names). \
     show()
+
+#Sect5 Manipulate cols
+
+#02 Predefined Functions
+#We typically process data in the columns using functions in pyspark.sql.functions
+#in terminal
+pip3 install databricks-cli
+databricks configure -h
+
+databricks configure --token
+
+'''
+Let us copy the required data sets used for this course by using databricks fs.
+
+    Make sure Databricks CLI is installed and configured with token.
+    Run this command to validate you have access to the environment you are working with - databricks fs ls
+    Create a folder by name dbfs:/public using databricks fs mkdirs dbfs:/public.
+
+Here are the instructions to setup retail_db data set under dbfs:/public.
+
+    Clone the GitHub repository by using git clone https//github.com/dgadiraju/retail_db.git.
+    Make sure to get into the folder and remove .git folder by using rm -rf .git. If you are using Windows you can use File Explorer to delete the folder.
+    Run the below command to copy the retail_db folder into dbfs:/public. Make sure to provide fully qualified path.
+
+databricks fs cp /Users/itversity/retail_db dbfs:/public/retail_db --recursive
+
+    Use the below command to validate. It should return details related to 6 folders and files.
+
+databricks fs ls dbfs:/public/retail_db
+
+Follow the similar instructions to setup retail_db_json data set under dbfs:/public using this git repo - https//github.com/itversity/retail_db_json.git
+
+'''

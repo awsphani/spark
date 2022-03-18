@@ -1478,6 +1478,7 @@ employeesDF = spark. \
                     phone_number STRING, ssn STRING"""
                    )
 employeesDF.show(truncate=False)
+'''
 +-----------+----------+---------+------+--------------+----------------+-----------+
 |employee_id|first_name|last_name|salary|nationality   |phone_number    |ssn        |
 +-----------+----------+---------+------+--------------+----------------+-----------+
@@ -1486,8 +1487,67 @@ employeesDF.show(truncate=False)
 |3          |Nick      |Junior   |750.0 |united KINGDOM|+44 111 111 1111|222 33 4444|
 |4          |Bill      |Gomes    |1500.0|AUSTRALIA     |+61 987 654 3210|789 12 6118|
 +-----------+----------+---------+------+--------------+----------------+-----------+
+'''
+from pyspark.sql.functions import col, upper
+employeesDF. \
+    select(upper("first_name"), upper("last_name")). \
+    show()
+employeesDF. \
+    select(upper(col("first_name")), upper(col("last_name"))). \
+    show()
+employeesDF. \
+    groupBy(upper(col("nationality"))). \
+    count(). \
+    show()
+
+#Also, if we want to use functions such as alias, desc etc on columns then we have to pass the column names as column type (not as strings).
+
+# We can invoke desc on columns which are of type column
+employeesDF. \
+    orderBy(col("employee_id").desc()). \
+    show()
+
+# This will fail as the function desc is available only on column type.
+employeesDF. \
+    orderBy("employee_id".desc()). \
+    show()
+employeesDF. \
+    orderBy(col("first_name").desc()). \
+    show()
+# Alternative - we can also refer column names using Data Frame like this
+employeesDF. \
+    orderBy(upper(employeesDF['first_name']).alias('first_name')). \
+    show()
+# Alternative - we can also refer column names using Data Frame like this
+employeesDF. \
+    orderBy(upper(employeesDF.first_name).alias('first_name')). \
+    show()
+#Sometimes, we want to add a literal to the column values. For example, we might want to concatenate first_name and last_name separated by comma and space in between.
+from pyspark.sql.functions import concat
+
+#below will throw error AnalysisException: cannot resolve '`, `' given input columns: [employee_id, first_name, last_name, nationality, phone_number, salary, ssn];
+employeesDF. \
+    select(concat(col("first_name"), ", ", col("last_name"))). \
+    show()
+
+# Referring columns using Data Frame also throw same err as above
+employeesDF. \
+    select(concat(employeesDF["first_name"], ", ", employeesDF["last_name"])). \
+    show()
+
+from pyspark.sql.functions import concat, col, lit
+
+employeesDF. \
+    select(concat(col("first_name"), 
+                  lit(", "), 
+                  col("last_name")
+                 ).alias("full_name")
+          ). \
+    show(truncate=False)
 
 #04 Categories Of Functions
+
+
 '''
 
     String Manipulation Functions
@@ -1515,3 +1575,67 @@ employeesDF.show(truncate=False)
 
 
 '''
+#05 Getting Help on Spark Functions
+from pyspark.sql.functions import date_format, col, lit, concat, concat_ws
+help(date_format)
+'''
+
+date_format(date, format)
+    Converts a date/timestamp/string to a value of string in the format specified by the date
+    format given by the second argument.
+    
+    A pattern could be for instance `dd.MM.yyyy` and could return a string like '18.03.1993'. All
+    pattern letters of `datetime pattern`_. can be used.
+    
+    .. _datetime pattern: https://spark.apache.org/docs/latest/sql-ref-datetime-pattern.html
+    
+    .. versionadded:: 1.5.0
+    
+    Notes
+    -----
+    Whenever possible, use specialized functions like `year`.
+    
+    Examples
+    --------
+    >>> df = spark.createDataFrame([('2015-04-08',)], ['dt'])
+    >>> df.select(date_format('dt', 'MM/dd/yyy').alias('date')).collect()
+    [Row(date='04/08/2015')]
+
+'''
+
+help(concat)
+'''
+concat(*cols)
+    Concatenates multiple input columns together into a single column.
+    The function works with strings, binary and compatible array columns.
+    
+    .. versionadded:: 1.5.0
+    
+    Examples
+    --------
+    >>> df = spark.createDataFrame([('abcd','123')], ['s', 'd'])
+    >>> df.select(concat(df.s, df.d).alias('s')).collect()
+    [Row(s='abcd123')]
+    
+    >>> df = spark.createDataFrame([([1, 2], [3, 4], [5]), ([1, 2], None, [3])], ['a', 'b', 'c'])
+    >>> df.select(concat(df.a, df.b, df.c).alias("arr")).collect()
+    [Row(arr=[1, 2, 3, 4, 5]), Row(arr=None)]
+'''
+
+help(concat_ws)
+'''
+concat_ws(sep, *cols)
+    Concatenates multiple input string columns together into a single string column,
+    using the given separator.
+    
+    .. versionadded:: 1.5.0
+    
+    Examples
+    --------
+    >>> df = spark.createDataFrame([('abcd','123')], ['s', 'd'])
+    >>> df.select(concat_ws('-', df.s, df.d).alias('s')).collect()
+    [Row(s='abcd-123')]
+'''
+
+
+

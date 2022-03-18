@@ -1897,3 +1897,59 @@ empFixedDF = employeesDF.select(
 
 '''
 
+l = [("   Hello.    ",) ]
+df = spark.createDataFrame(l).toDF("dummy")
+from pyspark.sql.functions import col, ltrim, rtrim, trim
+df.withColumn("ltrim", ltrim(col("dummy"))). \
+  withColumn("rtrim", rtrim(col("dummy"))). \
+  withColumn("trim", trim(col("dummy"))). \
+  show()
+'''
++-------------+----------+---------+------+
+|        dummy|     ltrim|    rtrim|  trim|
++-------------+----------+---------+------+
+|   Hello.    |Hello.    |   Hello.|Hello.|
++-------------+----------+---------+------+
+'''
+
+from pyspark.sql.functions import expr
+spark.sql('DESCRIBE FUNCTION rtrim').show(truncate=False)
+'''
++-----------------------------------------------------------------------------+
+|function_desc                                                                |
++-----------------------------------------------------------------------------+
+|Function: rtrim                                                              |
+|Class: org.apache.spark.sql.catalyst.expressions.StringTrimRight             |
+|Usage: 
+    rtrim(str) - Removes the trailing space characters from `str`.
+  |
++-----------------------------------------------------------------------------+
+
+'''
+# if we do not specify trimStr, it will be defaulted to space
+df.withColumn("ltrim", expr("ltrim(dummy)")). \
+  withColumn("rtrim", expr("rtrim('.', rtrim(dummy))")). \
+  withColumn("trim", trim(col("dummy"))). \
+  show()
+'''
++-------------+----------+--------+------+
+|        dummy|     ltrim|   rtrim|  trim|
++-------------+----------+--------+------+
+|   Hello.    |Hello.    |   Hello|Hello.|
++-------------+----------+--------+------+
+
+'''
+
+df.withColumn("ltrim", expr("trim(LEADING ' ' FROM dummy)")). \
+  withColumn("rtrim", expr("trim(TRAILING '.' FROM rtrim(dummy))")). \
+  withColumn("trim", expr("trim(BOTH ' ' FROM dummy)")). \
+  show()
+
+'''
++-------------+----------+--------+------+
+|        dummy|     ltrim|   rtrim|  trim|
++-------------+----------+--------+------+
+|   Hello.    |Hello.    |   Hello|Hello.|
++-------------+----------+--------+------+
+
+'''

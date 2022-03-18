@@ -1842,11 +1842,58 @@ employeesDF. \
 +-----------+-----+
 '''
 
+#10 Padding Characters around strings
 
+l = [('X',)]
+df = spark.createDataFrame(l).toDF("dummy")
+from pyspark.sql.functions import lit, lpad
+df.select(lpad(lit("Hello"), 10, "-").alias("dummy")).show()
+'''
++----------+
+|     dummy|
++----------+
+|-----Hello|
++----------+
 
+'''
+employeesDF = spark.createDataFrame(employees). \
+    toDF("employee_id", "first_name",
+         "last_name", "salary",
+         "nationality", "phone_number",
+         "ssn"
+        ).show()
+'''
++-----------+----------+---------+------+--------------+----------------+-----------+
+|employee_id|first_name|last_name|salary|   nationality|    phone_number|        ssn|
++-----------+----------+---------+------+--------------+----------------+-----------+
+|          1|     Scott|    Tiger|1000.0| united states| +1 123 456 7890|123 45 6789|
+|          2|     Henry|     Ford|1250.0|         India|+91 234 567 8901|456 78 9123|
+|          3|      Nick|   Junior| 750.0|united KINGDOM|+44 111 111 1111|222 33 4444|
+|          4|      Bill|    Gomes|1500.0|     AUSTRALIA|+61 987 654 3210|789 12 6118|
++-----------+----------+---------+------+--------------+----------------+-----------+
 
+'''
+from pyspark.sql.functions import lpad, rpad, concat
+empFixedDF = employeesDF.select(
+    concat(
+        lpad("employee_id", 5, "0"), 
+        rpad("first_name", 10, "-"), 
+        rpad("last_name", 10, "-"),
+        lpad("salary", 10, "0"), 
+        rpad("nationality", 15, "-"), 
+        rpad("phone_number", 17, "-"), 
+        "ssn"
+    ).alias("employee")
+)
+'''
++------------------------------------------------------------------------------+
+|employee                                                                      |
++------------------------------------------------------------------------------+
+|00001Scott-----Tiger-----00001000.0united states--+1 123 456 7890--123 45 6789|
+|00002Henry-----Ford------00001250.0India----------+91 234 567 8901-456 78 9123|
+|00003Nick------Junior----00000750.0united KINGDOM-+44 111 111 1111-222 33 4444|
+|00004Bill------Gomes-----00001500.0AUSTRALIA------+61 987 654 3210-789 12 6118|
++------------------------------------------------------------------------------+
 
-
-
-
+'''
 

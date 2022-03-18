@@ -1638,4 +1638,215 @@ concat_ws(sep, *cols)
 '''
 
 
+#07 Common String Manipulation Functions
+
+from pyspark.sql.functions import concat
+employeesDF. \
+    withColumn("full_name", concat("first_name", "last_name")). \
+    show()
+from pyspark.sql.functions import concat, lit
+employeesDF. \
+    withColumn("full_name", concat("first_name", lit(", "), "last_name")). \
+    show()
+
+
+employeesDF = spark.createDataFrame(employees). \
+    toDF("employee_id", "first_name",
+         "last_name", "salary",
+         "nationality", "phone_number",
+         "ssn"
+        )
+from pyspark.sql.functions import col, lower, upper, initcap, length
+employeesDF. \
+  select("employee_id", "nationality"). \
+  withColumn("nationality_upper", upper(col("nationality"))). \
+  withColumn("nationality_lower", lower(col("nationality"))). \
+  withColumn("nationality_initcap", initcap(col("nationality"))). \
+  withColumn("nationality_length", length(col("nationality"))). \
+  show()
+
+#08 Extracting Strings using substring
+l = [('X', )]
+df = spark.createDataFrame(l, "dummy STRING")
+
+#We can use substring function to extract substring from main string using Pyspark.
+from pyspark.sql.functions import substring, lit
+
+# Function takes 3 arguments
+# First argument is a column from which we want to extract substring.
+# Second argument is the character from which string is supposed to be extracted.
+# Third argument is number of characters from the first argument.
+df.select(substring(lit("Hello World"), 7, 5)). \
+  show()
+'''
++----------------------------+
+|substring(Hello World, 7, 5)|
++----------------------------+
+|                       World|
++----------------------------+
+'''
+df.select(substring(lit("Hello World"), -5, 5)). \
+  show()
+'''
++----------------------------+
+|substring(Hello World, 7, 5)|
++----------------------------+
+|                       World|
++----------------------------+
+'''
+
+employees = [(1, "Scott", "Tiger", 1000.0, 
+                      "united states", "+1 123 456 7890", "123 45 6789"
+                     ),
+                     (2, "Henry", "Ford", 1250.0, 
+                      "India", "+91 234 567 8901", "456 78 9123"
+                     ),
+                     (3, "Nick", "Junior", 750.0, 
+                      "united KINGDOM", "+44 111 111 1111", "222 33 4444"
+                     ),
+                     (4, "Bill", "Gomes", 1500.0, 
+                      "AUSTRALIA", "+61 987 654 3210", "789 12 6118"
+                     )
+                ]
+employeesDF = spark. \
+    createDataFrame(employees,
+                    schema="""employee_id INT, first_name STRING, 
+                    last_name STRING, salary FLOAT, nationality STRING,
+                    phone_number STRING, ssn STRING"""
+                   )
+'''
++-----------+----------+---------+------+--------------+----------------+-----------+
+|employee_id|first_name|last_name|salary|nationality   |phone_number    |ssn        |
++-----------+----------+---------+------+--------------+----------------+-----------+
+|1          |Scott     |Tiger    |1000.0|united states |+1 123 456 7890 |123 45 6789|
+|2          |Henry     |Ford     |1250.0|India         |+91 234 567 8901|456 78 9123|
+|3          |Nick      |Junior   |750.0 |united KINGDOM|+44 111 111 1111|222 33 4444|
+|4          |Bill      |Gomes    |1500.0|AUSTRALIA     |+61 987 654 3210|789 12 6118|
++-----------+----------+---------+------+--------------+----------------+-----------+
+'''
+
+from pyspark.sql.functions import substring, col
+employeesDF. \
+    select("employee_id", "phone_number", "ssn"). \
+    withColumn("phone_last4", substring(col("phone_number"), -4, 4).cast("int")). \
+    withColumn("ssn_last4", substring(col("ssn"), 8, 4).cast("int")). \
+    show()
+'''
++-----------+----------------+-----------+-----------+---------+
+|employee_id|    phone_number|        ssn|phone_last4|ssn_last4|
++-----------+----------------+-----------+-----------+---------+
+|          1| +1 123 456 7890|123 45 6789|       7890|     6789|
+|          2|+91 234 567 8901|456 78 9123|       8901|     9123|
+|          3|+44 111 111 1111|222 33 4444|       1111|     4444|
+|          4|+61 987 654 3210|789 12 6118|       3210|     6118|
++-----------+----------------+-----------+-----------+---------+
+
+'''
+#09 Extracting Strings using split,If we are processing variable length columns with delimiter then we use split to extract the information.
+'''
+split takes 2 arguments, column and delimiter.
+split convert each string into array and we can access the elements using index.
+We can also use explode in conjunction with split to explode the list or array into records in Data Frame. It can be used in cases such as word count, phone count etc.
+'''
+l = [('X', )]
+df = spark.createDataFrame(l, "dummy STRING")
+from pyspark.sql.functions import split, explode, lit
+df.select(split(lit("Hello World, how are you"), " ")). \
+    show(truncate=False)
+'''
++--------------------------------------+
+|split(Hello World, how are you,  , -1)|
++--------------------------------------+
+|[Hello, World,, how, are, you]        |
++-
+'''
+df.select(split(lit("Hello World, how are you"), " ")[2]). \
+    show(truncate=False)
+'''
++-----------------------------------------+
+|split(Hello World, how are you,  , -1)[2]|
++-----------------------------------------+
+|how                                      |
++-----------------------------------------+
+
+'''
+df.select(explode(split(lit("Hello World, how are you"), " ")).alias('word')). \
+    show(truncate=False)
+
+'''
++------+
+|word  |
++------+
+|Hello |
+|World,|
+|how   |
+|are   |
+|you   |
++------+
+
+'''
+
+from pyspark.sql.functions import split, explode
+employeesDF = employeesDF. \
+    select('employee_id', 'phone_numbers', 'ssn'). \
+    withColumn('phone_number', explode(split('phone_numbers', ',')))
+
+'''
++-----------+---------------------------------+-----------+----------------+
+|employee_id|phone_numbers                    |ssn        |phone_number    |
++-----------+---------------------------------+-----------+----------------+
+|1          |+1 123 456 7890,+1 234 567 8901  |123 45 6789|+1 123 456 7890 |
+|1          |+1 123 456 7890,+1 234 567 8901  |123 45 6789|+1 234 567 8901 |
+|2          |+91 234 567 8901                 |456 78 9123|+91 234 567 8901|
+|3          |+44 111 111 1111,+44 222 222 2222|222 33 4444|+44 111 111 1111|
+|3          |+44 111 111 1111,+44 222 222 2222|222 33 4444|+44 222 222 2222|
+|4          |+61 987 654 3210,+61 876 543 2109|789 12 6118|+61 987 654 3210|
+|4          |+61 987 654 3210,+61 876 543 2109|789 12 6118|+61 876 543 2109|
++-----------+---------------------------------+-----------+----------------+
+
+'''
+employeesDF. \
+    select("employee_id", "phone_number", "ssn"). \
+    withColumn("area_code", split("phone_number", " ")[1].cast("int")). \
+    withColumn("phone_last4", split("phone_number", " ")[3].cast("int")). \
+    withColumn("ssn_last4", split("ssn", " ")[2].cast("int")). \
+    show()
+
+'''
++-----------+----------------+-----------+---------+-----------+---------+
+|employee_id|    phone_number|        ssn|area_code|phone_last4|ssn_last4|
++-----------+----------------+-----------+---------+-----------+---------+
+|          1| +1 123 456 7890|123 45 6789|      123|       7890|     6789|
+|          1| +1 234 567 8901|123 45 6789|      234|       8901|     6789|
+|          2|+91 234 567 8901|456 78 9123|      234|       8901|     9123|
+|          3|+44 111 111 1111|222 33 4444|      111|       1111|     4444|
+|          3|+44 222 222 2222|222 33 4444|      222|       2222|     4444|
+|          4|+61 987 654 3210|789 12 6118|      987|       3210|     6118|
+|          4|+61 876 543 2109|789 12 6118|      876|       2109|     6118|
++-----------+----------------+-----------+---------+-----------+---------+
+
+'''
+
+employeesDF. \
+    groupBy('employee_id'). \
+    count(). \
+    show()
+'''
++-----------+-----+
+|employee_id|count|
++-----------+-----+
+|          1|    2|
+|          2|    1|
+|          3|    2|
+|          4|    2|
++-----------+-----+
+'''
+
+
+
+
+
+
+
+
 

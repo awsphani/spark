@@ -1362,3 +1362,156 @@ databricks fs ls dbfs:/public/retail_db
 Follow the similar instructions to setup retail_db_json data set under dbfs:/public using this git repo - https//github.com/itversity/retail_db_json.git
 
 '''
+
+# Reading data
+orders = spark.read.csv(
+    '/FileStore/tables/orders',
+    schema='order_id INT, order_date STRING, order_customer_id INT, order_status STRING'
+)
+orders.show(5,False)
+'''
++--------+---------------------+-----------------+---------------+
+|order_id|order_date           |order_customer_id|order_status   |
++--------+---------------------+-----------------+---------------+
+|1       |2013-07-25 00:00:00.0|11599            |CLOSED         |
+|2       |2013-07-25 00:00:00.0|256              |PENDING_PAYMENT|
+|3       |2013-07-25 00:00:00.0|12111            |COMPLETE       |
+|4       |2013-07-25 00:00:00.0|8827             |CLOSED         |
+|5       |2013-07-25 00:00:00.0|11318            |COMPLETE       |
++--------+---------------------+-----------------+---------------+
+'''
+
+from pyspark.sql.functions import date_format
+
+# Function as part of projections
+orders.select('*', date_format('order_date', 'yyyyMM').alias('order_month')).show()
+
+orders.withColumn('order_month', date_format('order_date', 'yyyyMM')).show()
+
+# Function as part of where or filter
+
+orders. \
+    filter(date_format('order_date', 'yyyyMM') == 201401). \
+    show()
+
+# Function as part of groupBy
+
+orders. \
+    groupBy(date_format('order_date', 'yyyyMM').alias('order_month')). \
+    count(). \
+    show()
+'''
++-----------+-----+
+|order_month|count|
++-----------+-----+
+|     201401| 5908|
+|     201405| 5467|
+|     201312| 5892|
+|     201310| 5335|
+|     201311| 6381|
+|     201307| 1533|
+|     201407| 4468|
+|     201403| 5778|
+|     201404| 5657|
+|     201402| 5635|
+|     201309| 5841|
+|     201406| 5308|
+|     201308| 5680|
++-----------+-----+
+'''
+df=orders.withColumn('order_month', date_format('order_date', 'yyyyMM'))
+df=orders.withColumn('order_month', date_format('order_date', 'yyyyMM'))
+from pyspark.sql.functions import col
+#df.filter(col('order_month')==201401).show()
+df.groupBy(col('order_month')).count().show()
+
+
+#03 Create Dummy Dataframes
+l = [('X', )]
+df = spark.createDataFrame(l, "dummy STRING")
+df.show()
+
+from pyspark.sql.functions import current_date
+df.select(current_date()). \
+    show()
+'''
++-----+
+|dummy|
++-----+
+|    X|
++-----+
+
++--------------+
+|current_date()|
++--------------+
+|    2022-03-18|
++--------------+
+'''
+df.select(current_date().alias("current_date")). \
+    show()
+'''
++------------+
+|current_date|
++------------+
+|  2022-03-18|
++------------+
+'''
+employees = [
+    (1, "Scott", "Tiger", 1000.0, 
+      "united states", "+1 123 456 7890", "123 45 6789"
+    ),
+     (2, "Henry", "Ford", 1250.0, 
+      "India", "+91 234 567 8901", "456 78 9123"
+     ),
+     (3, "Nick", "Junior", 750.0, 
+      "united KINGDOM", "+44 111 111 1111", "222 33 4444"
+     ),
+     (4, "Bill", "Gomes", 1500.0, 
+      "AUSTRALIA", "+61 987 654 3210", "789 12 6118"
+     )
+]
+
+employeesDF = spark. \
+    createDataFrame(employees,
+                    schema="""employee_id INT, first_name STRING, 
+                    last_name STRING, salary FLOAT, nationality STRING,
+                    phone_number STRING, ssn STRING"""
+                   )
+employeesDF.show(truncate=False)
++-----------+----------+---------+------+--------------+----------------+-----------+
+|employee_id|first_name|last_name|salary|nationality   |phone_number    |ssn        |
++-----------+----------+---------+------+--------------+----------------+-----------+
+|1          |Scott     |Tiger    |1000.0|united states |+1 123 456 7890 |123 45 6789|
+|2          |Henry     |Ford     |1250.0|India         |+91 234 567 8901|456 78 9123|
+|3          |Nick      |Junior   |750.0 |united KINGDOM|+44 111 111 1111|222 33 4444|
+|4          |Bill      |Gomes    |1500.0|AUSTRALIA     |+61 987 654 3210|789 12 6118|
++-----------+----------+---------+------+--------------+----------------+-----------+
+
+#04 Categories Of Functions
+'''
+
+    String Manipulation Functions
+        Case Conversion - lower, upper
+        Getting Length - length
+        Extracting substrings - substring, split
+        Trimming - trim, ltrim, rtrim
+        Padding - lpad, rpad
+        Concatenating string - concat, concat_ws
+    Date Manipulation Functions
+        Getting current date and time - current_date, current_timestamp
+        Date Arithmetic - date_add, date_sub, datediff, months_between, add_months, next_day
+        Beginning and Ending Date or Time - last_day, trunc, date_trunc
+        Formatting Date - date_format
+        Extracting Information - dayofyear, dayofmonth, dayofweek, year, month
+    Aggregate Functions
+        count, countDistinct
+        sum, avg
+        min, max
+    Other Functions - We will explore depending on the use cases.
+        CASE and WHEN
+        CAST for type casting
+        Functions to manage special types such as ARRAY, MAP, STRUCT type columns
+        Many others
+
+
+'''

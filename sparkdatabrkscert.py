@@ -2155,4 +2155,303 @@ datetimesDF. \
 
 '''
 
-    
+#15 Date and Time Extract Functions
+'''
+
+year
+month
+weekofyear
+dayofyear
+dayofmonth
+dayofweek
+hour
+minute
+second
+
+help(dayofweek)
+'''
+l = [("X", )]
+df = spark.createDataFrame(l).toDF("dummy")
+from pyspark.sql.functions import year, month, weekofyear, dayofmonth, \
+    dayofyear, dayofweek, current_date
+df.select(
+    current_date().alias('current_date'), 
+    year(current_date()).alias('year'),
+    month(current_date()).alias('month'),
+    weekofyear(current_date()).alias('weekofyear'),
+    dayofyear(current_date()).alias('dayofyear'),
+    dayofmonth(current_date()).alias('dayofmonth'),
+    dayofweek(current_date()).alias('dayofweek')
+).show() #yyyy-MM-dd
+'''
++------------+----+-----+----------+---------+----------+---------+
+|current_date|year|month|weekofyear|dayofyear|dayofmonth|dayofweek|
++------------+----+-----+----------+---------+----------+---------+
+|  2022-01-02|2022|    1|        52|        2|         2|        1|
++------------+----+-----+----------+---------+----------+---------+
+'''
+from pyspark.sql.functions import current_timestamp, hour, minute, second
+df.select(
+    current_timestamp().alias('current_timestamp'), 
+    year(current_timestamp()).alias('year'),
+    month(current_timestamp()).alias('month'),
+    dayofmonth(current_timestamp()).alias('dayofmonth'),
+    hour(current_timestamp()).alias('hour'),
+    minute(current_timestamp()).alias('minute'),
+    second(current_timestamp()).alias('second')
+).show(truncate=False) #yyyy-MM-dd HH:mm:ss.SSS
+
+'''
++-----------------------+----+-----+----------+----+------+------+
+|current_timestamp      |year|month|dayofmonth|hour|minute|second|
++-----------------------+----+-----+----------+----+------+------+
+|2022-01-02 21:49:07.472|2022|1    |2         |21  |49    |7     |
++-----------------------+----+-----+----------+----+------+------+
+'''
+
+#16 Using to_date and to_timestamp
+#to convert non standard dates and timestamps to standard dates and timestamps.
+'''
+
+yyyy-MM-dd is the standard date format
+yyyy-MM-dd HH:mm:ss.SSS is the standard timestamp format
+Most of the date manipulation functions expect date and time using standard format. However, we might not have data in the expected standard format.
+In those scenarios we can use to_date and to_timestamp to convert non standard dates and timestamps to standard ones respectively.
+
+'''
+
+from pyspark.sql.functions import lit, to_date
+l = [("X", )]
+df = spark.createDataFrame(l).toDF("dummy")
+df.select(to_date(lit('20210302'), 'yyyyMMdd').alias('to_date')).show()
+'''
++----------+
+|   to_date|
++----------+
+|2021-03-02|
++----------+
+'''
+# year and day of year to standard date
+df.select(to_date(lit('2021061'), 'yyyyDDD').alias('to_date')).show()
+'''
++----------+
+|   to_date|
++----------+
+|2021-03-02|
++----------+
+'''
+
+
+df.select(to_date(lit('02/03/2021'),   'dd/MM/yyyy').alias('to_date')).show()
+df.select(to_date(lit('02-03-2021'),   'dd-MM-yyyy').alias('to_date')).show()
+df.select(to_date(lit('02-Mar-2021'),  'dd-MMM-yyyy').alias('to_date')).show()
+df.select(to_date(lit('02-March-2021'),'dd-MMMM-yyyy').alias('to_date')).show()
+df.select(to_date(lit('March 2, 2021'),'MMMM d, yyyy').alias('to_date')).show()
+'''
++----------+
+|   to_date|
++----------+
+|2021-03-02|
++----------+
+'''
+
+from pyspark.sql.functions import to_timestamp
+df.select(to_timestamp(lit('02-Mar-2021'), 'dd-MMM-yyyy').alias('to_date')).show()
+df.select(to_timestamp(lit('02-Mar-2021 17:30:15'), 'dd-MMM-yyyy HH:mm:ss').alias('to_date')).show()
+'''
++-------------------+
+|            to_date|
++-------------------+
+|2021-03-02 00:00:00|
++-------------------+
+'''
+
+datetimes = [(20140228, "28-Feb-2014 10:00:00.123"),
+                     (20160229, "20-Feb-2016 08:08:08.999"),
+                     (20171031, "31-Dec-2017 11:59:59.123"),
+                     (20191130, "31-Aug-2019 00:00:00.000")
+                ]
+datetimesDF = spark.createDataFrame(datetimes, schema="date BIGINT, time STRING")
+datetimesDF.printSchema()
+'''
++--------+------------------------+
+|date    |time                    |
++--------+------------------------+
+|20140228|28-Feb-2014 10:00:00.123|
+|20160229|20-Feb-2016 08:08:08.999|
+|20171031|31-Dec-2017 11:59:59.123|
+|20191130|31-Aug-2019 00:00:00.000|
++--------+------------------------+
+root
+ |-- date: long (nullable = true)
+ |-- time: string (nullable = true)
+
+Let us convert data in datetimesDF to standard dates or timestamps
+
+'''
+from pyspark.sql.functions import col, to_date, to_timestamp
+datetimesDF. \
+    withColumn('to_date', to_date(col('date').cast('string'), 'yyyyMMdd')). \
+    withColumn('to_timestamp', to_timestamp(col('time'), 'dd-MMM-yyyy HH:mm:ss.SSS')). \
+    show(truncate=False)
+'''
++--------+------------------------+----------+-----------------------+
+|date    |time                    |to_date   |to_timestamp           |
++--------+------------------------+----------+-----------------------+
+|20140228|28-Feb-2014 10:00:00.123|2014-02-28|2014-02-28 10:00:00.123|
+|20160229|20-Feb-2016 08:08:08.999|2016-02-29|2016-02-20 08:08:08.999|
+|20171031|31-Dec-2017 11:59:59.123|2017-10-31|2017-12-31 11:59:59.123|
+|20191130|31-Aug-2019 00:00:00.000|2019-11-30|2019-08-31 00:00:00    |
++--------+------------------------+----------+-----------------------+
+'''
+
+#17 Using date_format Function
+'''
+how to extract information from dates or times using date_format function.
+
+We can use date_format to extract the required information in a desired format from standard date or timestamp. Earlier we have explored to_date and to_timestamp to convert non standard date or timestamp to standard ones respectively.
+There are also specific functions to extract year, month, day with in a week, a day with in a month, day with in a year etc. These are covered as part of earlier topics in this section or module.
+'''
+datetimes = [("2014-02-28", "2014-02-28 10:00:00.123"),
+                     ("2016-02-29", "2016-02-29 08:08:08.999"),
+                     ("2017-10-31", "2017-12-31 11:59:59.123"),
+                     ("2019-11-30", "2019-08-31 00:00:00.000")
+                ]
+datetimesDF = spark.createDataFrame(datetimes, schema="date STRING, time STRING")
+
+from pyspark.sql.functions import date_format
+#Get the year and month from both date and time columns using yyyyMM format. Also make sure that the data type is converted to integer.
+datetimesDF. \
+    withColumn("date_ym", date_format("date", "yyyyMM")). \
+    withColumn("time_ym", date_format("time", "yyyyMM")). \
+    show(truncate=False)
+
+# yyyy
+# MM
+# dd
+# DD
+# HH
+# hh
+# mm
+# ss
+# SSS
+'''
++----------+-----------------------+-------+-------+
+|date      |time                   |date_ym|time_ym|
++----------+-----------------------+-------+-------+
+|2014-02-28|2014-02-28 10:00:00.123|201402 |201402 |
+|2016-02-29|2016-02-29 08:08:08.999|201602 |201602 |
+|2017-10-31|2017-12-31 11:59:59.123|201710 |201712 |
+|2019-11-30|2019-08-31 00:00:00.000|201911 |201908 |
++----------+-----------------------+-------+-------+
+'''
+datetimesDF. \
+    withColumn("date_ym", date_format("date", "yyyyMM")). \
+    withColumn("time_ym", date_format("time", "yyyyMM")). \
+    printSchema()
+datetimesDF. \
+    withColumn("date_ym", date_format("date", "yyyyMM").cast('int')). \
+    withColumn("time_ym", date_format("time", "yyyyMM").cast('int')). \
+    printSchema()
+'''
+root
+ |-- date: string (nullable = true)
+ |-- time: string (nullable = true)
+ |-- date_ym: string (nullable = true)
+ |-- time_ym: string (nullable = true)
+ root
+ |-- date: string (nullable = true)
+ |-- time: string (nullable = true)
+ |-- date_ym: integer (nullable = true)
+ |-- time_ym: integer (nullable = true)
+
+
+'''
+datetimesDF. \
+    withColumn("date_ym", date_format("date", "yyyyMM").cast('int')). \
+    withColumn("time_ym", date_format("time", "yyyyMM").cast('int')). \
+    show(truncate=False)
+
+'''
++----------+-----------------------+-------+-------+
+|date      |time                   |date_ym|time_ym|
++----------+-----------------------+-------+-------+
+|2014-02-28|2014-02-28 10:00:00.123|201402 |201402 |
+|2016-02-29|2016-02-29 08:08:08.999|201602 |201602 |
+|2017-10-31|2017-12-31 11:59:59.123|201710 |201712 |
+|2019-11-30|2019-08-31 00:00:00.000|201911 |201908 |
++----------+-----------------------+-------+-------+
+
+Get the information from time in yyyyMMddHHmmss format.
+'''
+datetimesDF. \
+    withColumn("date_dt", date_format("date", "yyyyMMddHHmmss").cast('long')). \
+    withColumn("date_ts", date_format("time", "yyyyMMddHHmmss").cast('long')). \
+    show(truncate=False)
+'''
++----------+-----------------------+--------------+--------------+
+|date      |time                   |date_dt       |date_ts       |
++----------+-----------------------+--------------+--------------+
+|2014-02-28|2014-02-28 10:00:00.123|20140228000000|20140228100000|
+|2016-02-29|2016-02-29 08:08:08.999|20160229000000|20160229080808|
+|2017-10-31|2017-12-31 11:59:59.123|20171031000000|20171231115959|
+|2019-11-30|2019-08-31 00:00:00.000|20191130000000|20190831000000|
++----------+-----------------------+--------------+--------------+
+
+Get year and day of year using yyyyDDD format.
+'''
+datetimesDF. \
+    withColumn("date_yd", date_format("date", "yyyyDDD").cast('int')). \
+    withColumn("time_yd", date_format("time", "yyyyDDD").cast('int')). \
+    show(truncate=False)
+'''
++----------+-----------------------+-------+-------+
+|date      |time                   |date_yd|time_yd|
++----------+-----------------------+-------+-------+
+|2014-02-28|2014-02-28 10:00:00.123|2014059|2014059|
+|2016-02-29|2016-02-29 08:08:08.999|2016060|2016060|
+|2017-10-31|2017-12-31 11:59:59.123|2017304|2017365|
+|2019-11-30|2019-08-31 00:00:00.000|2019334|2019243|
++----------+-----------------------+-------+-------+
+
+Get complete description of the date.
+'''
+datetimesDF. \
+    withColumn("date_desc", date_format("date", "MMMM d, yyyy")). \
+    show(truncate=False)
+'''
++----------+-----------------------+-----------------+
+|date      |time                   |date_desc        |
++----------+-----------------------+-----------------+
+|2014-02-28|2014-02-28 10:00:00.123|February 28, 2014|
+|2016-02-29|2016-02-29 08:08:08.999|February 29, 2016|
+|2017-10-31|2017-12-31 11:59:59.123|October 31, 2017 |
+|2019-11-30|2019-08-31 00:00:00.000|November 30, 2019|
++----------+-----------------------+-----------------+
+Get name of the week day using date.
+'''
+datetimesDF. \
+    withColumn("day_name_abbr", date_format("date", "EE")). \
+    show(truncate=False)
+datetimesDF. \
+    withColumn("day_name_full", date_format("date", "EEEE")). \
+    show(truncate=False)
+'''
++----------+-----------------------+-------------+
+|date      |time                   |day_name_abbr|
++----------+-----------------------+-------------+
+|2014-02-28|2014-02-28 10:00:00.123|Fri          |
+|2016-02-29|2016-02-29 08:08:08.999|Mon          |
+|2017-10-31|2017-12-31 11:59:59.123|Tue          |
+|2019-11-30|2019-08-31 00:00:00.000|Sat          |
++----------+-----------------------+-------------+
+
++----------+-----------------------+-------------+
+|date      |time                   |day_name_full|
++----------+-----------------------+-------------+
+|2014-02-28|2014-02-28 10:00:00.123|Friday       |
+|2016-02-29|2016-02-29 08:08:08.999|Monday       |
+|2017-10-31|2017-12-31 11:59:59.123|Tuesday      |
+|2019-11-30|2019-08-31 00:00:00.000|Saturday     |
++----------+-----------------------+-------------+
+'''

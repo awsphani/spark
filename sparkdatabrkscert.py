@@ -1926,7 +1926,7 @@ spark.sql('DESCRIBE FUNCTION rtrim').show(truncate=False)
 +-----------------------------------------------------------------------------+
 
 '''
-# if we do not specify trimStr, it will be defaulted to space
+# if we do not specify trimStr, it will be defaulted to space, trim removes bot leading and trailing spaces
 df.withColumn("ltrim", expr("ltrim(dummy)")). \
   withColumn("rtrim", expr("rtrim('.', rtrim(dummy))")). \
   withColumn("trim", trim(col("dummy"))). \
@@ -1953,3 +1953,206 @@ df.withColumn("ltrim", expr("trim(LEADING ' ' FROM dummy)")). \
 +-------------+----------+--------+------+
 
 '''
+
+
+
+
+#12 Date and Time Manipulation Functions
+
+'''
+We can use current_date to get today’s server date.Date will be returned using yyyy-MM-dd format.
+We can use current_timestamp to get current server time.Timestamp will be returned using yyyy-MM-dd HH:mm:ss:SSS format.
+Hours will be by default in 24 hour format.
+'''
+l = [("X", )]
+df = spark.createDataFrame(l).toDF("dummy")
+from pyspark.sql.functions import current_date, current_timestamp
+help(current_timestamp)
+df.select(current_date()).show() #yyyy-MM-dd
+df.select(current_timestamp()).show(truncate=False) #yyyy-MM-dd HH:mm:ss.SSS
+'''
++--------------+
+|current_date()|
++--------------+
+|    2022-01-02|
++--------------+
++----------------------+
+|current_timestamp()   |
++----------------------+
+|2022-01-02 21:47:23.32|
++----------------------+
+We can convert a string which contain date or timestamp in non-standard format to standard date or time using to_date or to_timestamp function respectively.
+'''
+from pyspark.sql.functions import lit, to_date, to_timestamp
+help(to_date) # to_date(col,format) takes col and string as params to convert col to date
+
+df.select(to_date(lit('20210228'), 'yyyyMMdd').alias('to_date')).show()
++----------+
+|   to_date|
++----------+
+|2021-02-28|
++----------+
+
+df.select(to_timestamp(lit('20210228 1725'), 'yyyyMMdd HHmm').alias('to_timestamp')).show()
++-------------------+
+|       to_timestamp|
++-------------------+
+|2021-02-28 17:25:00|
++-------------------+
+
+#13 Date and Time Arithmetic
+
+'''
+Adding days to a date or timestamp - date_add
+Subtracting days from a date or timestamp - date_sub
+Getting difference between 2 dates or timestamps - datediff
+Getting the number of months between 2 dates or timestamps - months_between
+Adding months to a date or timestamp - add_months
+Getting next day from a given date - next_day
+We can apply these on standard date or timestamp. All the functions return date even when applied on timestamp field.
+
+'''
+
+datetimes = [("2014-02-28", "2014-02-28 10:00:00.123"),
+                     ("2016-02-29", "2016-02-29 08:08:08.999"),
+                     ("2017-10-31", "2017-12-31 11:59:59.123"),
+                     ("2019-11-30", "2019-08-31 00:00:00.000")
+                ]
+datetimesDF = spark.createDataFrame(datetimes, schema="date STRING, time STRING")
+datetimesDF.show(truncate=False)
+
+'''
++----------+-----------------------+
+|date      |time                   |
++----------+-----------------------+
+|2014-02-28|2014-02-28 10:00:00.123|
+|2016-02-29|2016-02-29 08:08:08.999|
+|2017-10-31|2017-12-31 11:59:59.123|
+|2019-11-30|2019-08-31 00:00:00.000|
++----------+-----------------------+
+
+date_add(start, days) ->Returns the date that is `days` days after `start`
+    
+help(date_add)
+Add 10 days to both date and time values.
+Subtract 10 days from both date and time values.
+
+
+'''
+datetimesDF. \
+    withColumn("date_add_date", date_add("date", 10)). \
+    withColumn("date_add_time", date_add("time", 10)). \
+    withColumn("date_sub_date", date_sub("date", 10)). \
+    withColumn("date_sub_time", date_sub("time", 10)). \
+    show()
+'''
++----------+--------------------+-------------+-------------+-------------+-------------+
+|      date|                time|date_add_date|date_add_time|date_sub_date|date_sub_time|
++----------+--------------------+-------------+-------------+-------------+-------------+
+|2014-02-28|2014-02-28 10:00:...|   2014-03-10|   2014-03-10|   2014-02-18|   2014-02-18|
+|2016-02-29|2016-02-29 08:08:...|   2016-03-10|   2016-03-10|   2016-02-19|   2016-02-19|
+|2017-10-31|2017-12-31 11:59:...|   2017-11-10|   2018-01-10|   2017-10-21|   2017-12-21|
+|2019-11-30|2019-08-31 00:00:...|   2019-12-10|   2019-09-10|   2019-11-20|   2019-08-21|
++----------+--------------------+-------------+-------------+-------------+-------------+
+
+'''
+#Get the difference between current_date and date values as well as current_timestamp and time values.
+#datediff(end,start) -> returns no of days from start to end
+from pyspark.sql.functions import current_date, current_timestamp, datediff
+
+datetimesDF. \
+    withColumn("datediff_date", datediff(current_date(), "date")). \
+    withColumn("datediff_time", datediff(current_timestamp(), "time")). \
+    show()
+'''
++----------+--------------------+-------------+-------------+
+|      date|                time|datediff_date|datediff_time|
++----------+--------------------+-------------+-------------+
+|2014-02-28|2014-02-28 10:00:...|         2865|         2865|
+|2016-02-29|2016-02-29 08:08:...|         2134|         2134|
+|2017-10-31|2017-12-31 11:59:...|         1524|         1463|
+|2019-11-30|2019-08-31 00:00:...|          764|          855|
++----------+--------------------+-------------+-------------+
+
+
+Get the number of months between current_date and date values as well as current_timestamp and time values.
+Add 3 months to both date values as well as time values.
+help(months_between)-> months_between(date1,date2,roundOff=True) roundOff default 8 decimal places
+
+'''
+from pyspark.sql.functions import months_between, add_months, round
+datetimesDF. \
+    withColumn("months_between_date", round(months_between(current_date(), "date"), 2)). \
+    withColumn("months_between_time", round(months_between(current_timestamp(), "time"), 2)). \
+    withColumn("add_months_date", add_months("date", 3)). \
+    withColumn("add_months_time", add_months("time", 3)). \
+    show(truncate=False)
+
+#14 Using date and time trunc functions
+'''
+In Data Warehousing we quite often run to date reports such as 
+week to date, month to date, year to date etc. Let us understand how we can take care of such requirements using appropriate functions over Spark Data Frames.
+
+We can use trunc or date_trunc for the same to get the beginning date of the week, month, current year etc by passing date or timestamp to it.
+We can use trunc to get beginning date of the month or year by passing date or timestamp to it 
+- for example trunc(current_date(), "MM") will give the first of the current month.
+We can use date_trunc to get beginning date of the month or year as well as beginning time of the day or hour by passing timestamp to it.
+    Get beginning date based on month - date_trunc("MM", current_timestamp())
+    Get beginning time based on day - date_trunc("DAY", current_timestamp())
+'''
+
+from pyspark.sql.functions import trunc, date_trunc
+
+#Get beginning month date using date field and beginning year date using time field.
+#trunc returns date
+from pyspark.sql.functions import trunc
+datetimesDF. \
+    withColumn("date_trunc", trunc("date", "MM")). \
+    withColumn("time_trunc", trunc("time", "yy")). \
+    show(truncate=False)
+'''
++----------+-----------------------+----------+----------+
+|date      |time                   |date_trunc|time_trunc|
++----------+-----------------------+----------+----------+
+|2014-02-28|2014-02-28 10:00:00.123|2014-02-01|2014-01-01|
+|2016-02-29|2016-02-29 08:08:08.999|2016-02-01|2016-01-01|
+|2017-10-31|2017-12-31 11:59:59.123|2017-10-01|2017-01-01|
+|2019-11-30|2019-08-31 00:00:00.000|2019-11-01|2019-01-01|
++----------+-----------------------+----------+----------+
+'''
+#Get beginning hour time using date and time field.
+from pyspark.sql.functions import date_trunc
+#date_trunc returns timestamp
+datetimesDF. \
+    withColumn("date_trunc", date_trunc('MM', "date")). \
+    withColumn("time_trunc", date_trunc('yy', "time")). \
+    show(truncate=False)
+'''
++----------+-----------------------+-------------------+-------------------+
+|date      |time                   |date_trunc         |time_trunc         |
++----------+-----------------------+-------------------+-------------------+
+|2014-02-28|2014-02-28 10:00:00.123|2014-02-01 00:00:00|2014-01-01 00:00:00|
+|2016-02-29|2016-02-29 08:08:08.999|2016-02-01 00:00:00|2016-01-01 00:00:00|
+|2017-10-31|2017-12-31 11:59:59.123|2017-10-01 00:00:00|2017-01-01 00:00:00|
+|2019-11-30|2019-08-31 00:00:00.000|2019-11-01 00:00:00|2019-01-01 00:00:00|
++----------+-----------------------+-------------------+-------------------+
+
+'''
+datetimesDF. \
+    withColumn("date_dt", date_trunc("HOUR", "date")). \
+    withColumn("time_dt", date_trunc("HOUR", "time")). \
+    withColumn("time_dt1", date_trunc("dd", "time")). \
+    show(truncate=False)
+'''
++----------+-----------------------+-------------------+-------------------+-------------------+
+|date      |time                   |date_dt            |time_dt            |time_dt1           |
++----------+-----------------------+-------------------+-------------------+-------------------+
+|2014-02-28|2014-02-28 10:00:00.123|2014-02-28 00:00:00|2014-02-28 10:00:00|2014-02-28 00:00:00|
+|2016-02-29|2016-02-29 08:08:08.999|2016-02-29 00:00:00|2016-02-29 08:00:00|2016-02-29 00:00:00|
+|2017-10-31|2017-12-31 11:59:59.123|2017-10-31 00:00:00|2017-12-31 11:00:00|2017-12-31 00:00:00|
+|2019-11-30|2019-08-31 00:00:00.000|2019-11-30 00:00:00|2019-08-31 00:00:00|2019-08-31 00:00:00|
++----------+-----------------------+-------------------+-------------------+-------------------+
+
+'''
+
+    

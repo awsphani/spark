@@ -2656,3 +2656,114 @@ employeesDF. \
 +-----------+----------+---------+------+-----+--------------+----------------+-----------+-------+
 
 '''
+help(employeesDF.na) #->drop,fill,replace functions
+
+#replaces null values, na.fill fillna both are alias
+employeesDF.fillna(0.0,'salary').fillna('na','last_name)
+             
+                                        
+#20 Using case and when                                       
+'''
+CASE and WHEN is typically used to apply transformations based up on conditions. We can use CASE and WHEN similar to SQL using expr or selectExpr.
+If we want to use APIs, Spark provides functions such as when and otherwise. when is available as part of pyspark.sql.functions.
+On top of column type that is generated using when we should be able to invoke otherwise.
+'''
+#transform bonus to 0 in case of null or empty, otherwise return the bonus amount.
+from pyspark.sql.functions import coalesce, lit, col
+employeesDF. \
+    withColumn('bonus1', coalesce(col('bonus').cast('int'), lit(0))). \
+    show()
+                                        
+'''
++-----------+----------+---------+------+-----+--------------+----------------+-----------+------+
+|employee_id|first_name|last_name|salary|bonus|   nationality|    phone_number|        ssn|bonus1|
++-----------+----------+---------+------+-----+--------------+----------------+-----------+------+
+|          1|     Scott|    Tiger|1000.0|   10| united states| +1 123 456 7890|123 45 6789|    10|
+|          2|     Henry|     Ford|1250.0| null|         India|+91 234 567 8901|456 78 9123|     0|
+|          3|      Nick|   Junior| 750.0|     |united KINGDOM|+44 111 111 1111|222 33 4444|     0|
+|          4|      Bill|    Gomes|1500.0|   10|     AUSTRALIA|+61 987 654 3210|789 12 6118|    10|
++-----------+----------+---------+------+-----+--------------+----------------+-----------+------+
+
+'''
+from pyspark.sql.functions import expr
+employeesDF. \
+    withColumn(
+        'bonus', 
+        expr("""
+            CASE WHEN bonus IS NULL OR bonus = '' THEN 0
+            ELSE bonus
+            END
+            """)
+    ). \
+    show()
+'''
++-----------+----------+---------+------+-----+--------------+----------------+-----------+
+|employee_id|first_name|last_name|salary|bonus|   nationality|    phone_number|        ssn|
++-----------+----------+---------+------+-----+--------------+----------------+-----------+
+|          1|     Scott|    Tiger|1000.0|   10| united states| +1 123 456 7890|123 45 6789|
+|          2|     Henry|     Ford|1250.0|    0|         India|+91 234 567 8901|456 78 9123|
+|          3|      Nick|   Junior| 750.0|    0|united KINGDOM|+44 111 111 1111|222 33 4444|
+|          4|      Bill|    Gomes|1500.0|   10|     AUSTRALIA|+61 987 654 3210|789 12 6118|
++-----------+----------+---------+------+-----+--------------+----------------+-----------+
+'''
+from pyspark.sql.functions import when
+employeesDF. \
+    withColumn(
+        'bonus',
+        when((col('bonus').isNull()) | (col('bonus') == lit('')), 0).otherwise(col('bonus'))
+    ). \
+    show()
+
+                                        
+persons = [
+    (1, 1),
+    (2, 13),
+    (3, 18),
+    (4, 60),
+    (5, 120),
+    (6, 0),
+    (7, 12),
+    (8, 160)
+]
+personsDF = spark.createDataFrame(persons, schema='id INT, age INT')
+personsDF. \
+    withColumn(
+        'category',
+        expr("""
+            CASE
+            WHEN age BETWEEN 0 AND 2 THEN 'New Born'
+            WHEN age > 2 AND age <= 12 THEN 'Infant'
+            WHEN age > 12 AND age <= 48 THEN 'Toddler'
+            WHEN age > 48 AND age <= 144 THEN 'Kid'
+            ELSE 'Teenager or Adult'
+            END
+        """)
+    ). \
+    show()
+                                        
+personsDF. \
+    withColumn(
+        'category',
+        when(col('age').between(0, 2), 'New Born').
+        when((col('age') > 2) & (col('age') <= 12), 'Infant').
+        when((col('age') > 12) & (col('age') <= 48), 'Toddler').
+        when((col('age') > 48) & (col('age') <= 144), 'Kid').
+        otherwise('Teenager or Adult')
+    ). \
+    show()                                        
+ '''
+ +---+---+-----------------+
+| id|age|         category|
++---+---+-----------------+
+|  1|  1|         New Born|
+|  2| 13|          Toddler|
+|  3| 18|          Toddler|
+|  4| 60|              Kid|
+|  5|120|              Kid|
+|  6|  0|         New Born|
+|  7| 12|           Infant|
+|  8|160|Teenager or Adult|
++---+---+-----------------+
+'''
+                                        
+                                        

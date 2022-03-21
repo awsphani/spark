@@ -2329,12 +2329,12 @@ datetimesDF. \
 # yyyy
 # MM
 # dd
-# DD
-# HH
-# hh
-# mm
-# ss
-# SSS
+# DD julian day  within year 65th day as 065 or 240th day as 240
+# HH 24HR
+# hh 12hr
+# mm min
+# ss sec
+# SSS millisecs
 '''
 +----------+-----------------------+-------+-------+
 |date      |time                   |date_ym|time_ym|
@@ -2454,4 +2454,205 @@ datetimesDF. \
 |2017-10-31|2017-12-31 11:59:59.123|Tuesday      |
 |2019-11-30|2019-08-31 00:00:00.000|Saturday     |
 +----------+-----------------------+-------------+
+'''
+
+#18 Dealing with unix_timestamp
+'''
+It is an integer and started from January 1st 1970 Midnight UTC.
+Beginning time is also known as epoch and is incremented by 1 every second.
+We can convert Unix Timestamp to regular date or timestamp and vice versa.
+We can use unix_timestamp to convert regular date or timestamp to a unix timestamp value. For example unix_timestamp(lit("2019-11-19 00:00:00"))
+We can use from_unixtime to convert unix timestamp to regular date or timestamp. For example from_unixtime(lit(1574101800))
+We can also pass format to both the functions.
+
+'''
+datetimes = [(20140228, "2014-02-28", "2014-02-28 10:00:00.123"),
+                     (20160229, "2016-02-29", "2016-02-29 08:08:08.999"),
+                     (20171031, "2017-10-31", "2017-12-31 11:59:59.123"),
+                     (20191130, "2019-11-30", "2019-08-31 00:00:00.000")
+                ]
+datetimesDF = spark.createDataFrame(datetimes).toDF("dateid", "date", "time")
+'''
++--------+----------+-----------------------+
+|dateid  |date      |time                   |
++--------+----------+-----------------------+
+|20140228|2014-02-28|2014-02-28 10:00:00.123|
+|20160229|2016-02-29|2016-02-29 08:08:08.999|
+|20171031|2017-10-31|2017-12-31 11:59:59.123|
+|20191130|2019-11-30|2019-08-31 00:00:00.000|
++--------+----------+-----------------------+
+'''
+#Get unix timestamp for dateid, date and time.
+from pyspark.sql.functions import unix_timestamp, col
+
+datetimesDF. \
+    withColumn("unix_date_id", unix_timestamp(col("dateid").cast("string"), "yyyyMMdd")). \
+    withColumn("unix_date", unix_timestamp("date", "yyyy-MM-dd")). \
+    withColumn("unix_time", unix_timestamp("time")). \
+    show()
+
+'''
+help(unix_timestamp)
+unix_timestamp(timestamp=None,format='yyyy-MM-dd HH:mm:ss)
+convert time string witha given pattern ('yyyy-MM-dd HH:mm:ss default value)to unix time stamp (in seconds),using default timezone and locale,return null if fail
+if timestamp is None, it returns current timestamp
+'''
+#Create a Dataframe by name unixtimesDF with one column unixtime using 4 values. You can use the unix timestamp generated for time column in previous task.
+unixtimes = [(1393561800, ),
+             (1456713488, ),
+             (1514701799, ),
+             (1567189800, )
+            ]
+unixtimesDF = spark.createDataFrame(unixtimes).toDF("unixtime")
+unixtimesDF.printSchema()
+unixtimesDF.show()
+'''
+root
+ |-- unixtime: long (nullable = true)
+
++----------+
+|  unixtime|
++----------+
+|1393561800|
+|1456713488|
+|1514701799|
+|1567189800|
++----------+
+
+'''
+
+
+#Get date in yyyyMMdd format and also complete timestamp.
+
+from pyspark.sql.functions import from_unixtime
+unixtimesDF. \
+    withColumn("date", from_unixtime("unixtime", "yyyyMMdd")). \
+    withColumn("time", from_unixtime("unixtime")). \
+    show()
+#yyyyMMdd
+
+'''
++----------+--------+-------------------+
+|  unixtime|    date|               time|
++----------+--------+-------------------+
+|1393561800|20140228|2014-02-28 04:30:00|
+|1456713488|20160229|2016-02-29 02:38:08|
+|1514701799|20171231|2017-12-31 06:29:59|
+|1567189800|20190830|2019-08-30 18:30:00|
++----------+--------+-------------------+
+'''
+
+#19 Dealing with nulls
+'''
+Let us understand how to deal with nulls using functions that are available in Spark.
+We can use coalesce to return first non null value.
+We also have traditional SQL style functions such as nvl. However, they can be used either with expr or selectExpr.
+'''
+
+employees = [(1, "Scott", "Tiger", 1000.0, 10,
+                      "united states", "+1 123 456 7890", "123 45 6789"
+                     ),
+                     (2, "Henry", "Ford", 1250.0, None,
+                      "India", "+91 234 567 8901", "456 78 9123"
+                     ),
+                     (3, "Nick", "Junior", 750.0, '',
+                      "united KINGDOM", "+44 111 111 1111", "222 33 4444"
+                     ),
+                     (4, "Bill", "Gomes", 1500.0, 10,
+                      "AUSTRALIA", "+61 987 654 3210", "789 12 6118"
+                     )
+                ]
+employeesDF = spark. \
+    createDataFrame(employees,
+                    schema="""employee_id INT, first_name STRING, 
+                    last_name STRING, salary FLOAT, bonus STRING, nationality STRING,
+                    phone_number STRING, ssn STRING"""
+                   )
+'''
++-----------+----------+---------+------+-----+--------------+----------------+-----------+
+|employee_id|first_name|last_name|salary|bonus|   nationality|    phone_number|        ssn|
++-----------+----------+---------+------+-----+--------------+----------------+-----------+
+|          1|     Scott|    Tiger|1000.0|   10| united states| +1 123 456 7890|123 45 6789|
+|          2|     Henry|     Ford|1250.0| null|         India|+91 234 567 8901|456 78 9123|
+|          3|      Nick|   Junior| 750.0|     |united KINGDOM|+44 111 111 1111|222 33 4444|
+|          4|      Bill|    Gomes|1500.0|   10|     AUSTRALIA|+61 987 654 3210|789 12 6118|
++-----------+----------+---------+------+-----+--------------+----------------+-----------+
+
+'''
+
+#convert empty strings to null and then use coalesce, bonus col in the above df
+from pyspark.sql.functions import lit,col
+
+employeesDF. \
+    withColumn('bonus1', col('bonus').cast('int')). \
+    show()
+'''
++-----------+----------+---------+------+-----+--------------+----------------+-----------+------+
+|employee_id|first_name|last_name|salary|bonus|   nationality|    phone_number|        ssn|bonus1|
++-----------+----------+---------+------+-----+--------------+----------------+-----------+------+
+|          1|     Scott|    Tiger|1000.0|   10| united states| +1 123 456 7890|123 45 6789|    10|
+|          2|     Henry|     Ford|1250.0| null|         India|+91 234 567 8901|456 78 9123|  null|
+|          3|      Nick|   Junior| 750.0|     |united KINGDOM|+44 111 111 1111|222 33 4444|  null|
+|          4|      Bill|    Gomes|1500.0|   10|     AUSTRALIA|+61 987 654 3210|789 12 6118|    10|
++-----------+----------+---------+------+-----+--------------+----------------+-----------+------+
+'''
+
+employeesDF. \
+    withColumn('bonus1', coalesce(col('bonus').cast('int'), lit(0))). \
+    show()
+'''
++-----------+----------+---------+------+-----+--------------+----------------+-----------+------+
+|employee_id|first_name|last_name|salary|bonus|   nationality|    phone_number|        ssn|bonus1|
++-----------+----------+---------+------+-----+--------------+----------------+-----------+------+
+|          1|     Scott|    Tiger|1000.0|   10| united states| +1 123 456 7890|123 45 6789|    10|
+|          2|     Henry|     Ford|1250.0| null|         India|+91 234 567 8901|456 78 9123|     0|
+|          3|      Nick|   Junior| 750.0|     |united KINGDOM|+44 111 111 1111|222 33 4444|     0|
+|          4|      Bill|    Gomes|1500.0|   10|     AUSTRALIA|+61 987 654 3210|789 12 6118|    10|
++-----------+----------+---------+------+-----+--------------+----------------+-----------+------+
+'''
+
+from pyspark.sql.functions import expr
+
+employeesDF. \
+    withColumn('bonus', expr("nvl(bonus, 0)")). \
+    show()
+'''
++-----------+----------+---------+------+-----+--------------+----------------+-----------+
+|employee_id|first_name|last_name|salary|bonus|   nationality|    phone_number|        ssn|
++-----------+----------+---------+------+-----+--------------+----------------+-----------+
+|          1|     Scott|    Tiger|1000.0|   10| united states| +1 123 456 7890|123 45 6789|
+|          2|     Henry|     Ford|1250.0|    0|         India|+91 234 567 8901|456 78 9123|
+|          3|      Nick|   Junior| 750.0|     |united KINGDOM|+44 111 111 1111|222 33 4444|
+|          4|      Bill|    Gomes|1500.0|   10|     AUSTRALIA|+61 987 654 3210|789 12 6118|
++-----------+----------+---------+------+-----+--------------+----------------+-----------+
+'''
+employeesDF. \
+    withColumn('bonus', expr("nvl(nullif(bonus, ''), 0)")). \
+    show()
+
+'''
++-----------+----------+---------+------+-----+--------------+----------------+-----------+
+|employee_id|first_name|last_name|salary|bonus|   nationality|    phone_number|        ssn|
++-----------+----------+---------+------+-----+--------------+----------------+-----------+
+|          1|     Scott|    Tiger|1000.0|   10| united states| +1 123 456 7890|123 45 6789|
+|          2|     Henry|     Ford|1250.0|    0|         India|+91 234 567 8901|456 78 9123|
+|          3|      Nick|   Junior| 750.0|    0|united KINGDOM|+44 111 111 1111|222 33 4444|
+|          4|      Bill|    Gomes|1500.0|   10|     AUSTRALIA|+61 987 654 3210|789 12 6118|
++-----------+----------+---------+------+-----+--------------+----------------+-----------+
+
+'''
+
+employeesDF. \
+    withColumn('payment', col('salary') + (col('salary') * coalesce(col('bonus').cast('int'), lit(0)) / 100)). \
+    show()
+'''
++-----------+----------+---------+------+-----+--------------+----------------+-----------+-------+
+|employee_id|first_name|last_name|salary|bonus|   nationality|    phone_number|        ssn|payment|
++-----------+----------+---------+------+-----+--------------+----------------+-----------+-------+
+|          1|     Scott|    Tiger|1000.0|   10| united states| +1 123 456 7890|123 45 6789| 1100.0|
+|          2|     Henry|     Ford|1250.0| null|         India|+91 234 567 8901|456 78 9123| 1250.0|
+|          3|      Nick|   Junior| 750.0|     |united KINGDOM|+44 111 111 1111|222 33 4444|  750.0|
+|          4|      Bill|    Gomes|1500.0|   10|     AUSTRALIA|+61 987 654 3210|789 12 6118| 1650.0|
++-----------+----------+---------+------+-----+--------------+----------------+-----------+-------+
+
 '''

@@ -3212,5 +3212,179 @@ users_df. \
 
 '''
                                         
+#DROP COLS from DF
+'''
+drop(*cols) method of pyspark.sql.dataframe.DataFrame instance
+    Returns a new :class:`DataFrame` that drops the specified column.
+    This is a no-op if schema doesn't contain the given column name(s).
+    
+    .. versionadded:: 1.4.0
+    
+    Parameters
+    ----------
+    cols: str or :class:`Column`
+        a name of the column, or the :class:`Column` to drop
+'''
+                                        
+help(users_df.drop)
+                                        
+users_df.drop('last_updated_ts').printSchema()   
+users_df.drop(users_df['last_updated_ts']).printSchema()                                        
+users_df.drop(col('last_updated_ts')).printSchema()
+# If we have column name which does not exist, the column will be ignored
+users_df.drop(col('user_id')).printSchema()
+
+users_df.drop('first_name', 'last_name').printSchema()
+                                        
+# This will fail as we are passing multiple column objects
+# When we want to pass more than one column, we have to pass all column names as strings
+users_df.drop(col('first_name'), col('id')).printSchema()                                        
+                                        
+# If we have column name which does not exist, the column will be ignored
+users_df.drop('user_id', 'first_name', 'last_name').printSchema()                                        
+                                        
+pii_columns = ['first_name', 'last_name', 'email', 'phone_numbers']                                        
+                                        
+# This will fail
+# We need to convert list to varrying arguments to get it working
+users_df_nopii = users_df.drop(pii_columns) #will fail
+                                        
+users_df_nopii = users_df.drop(*pii_columns) #this will work
+                                        
+#07 Dropping Duplicate Records from Spark Data Frames   
+                                        
+#help(users_df.distinct) ->Returns a new :class:`DataFrame` containing the distinct rows in this :class:`DataFrame`.
+
+                                        
+# Drops exact duplicates
+users_df.distinct().show()
+                                        
+users_df.distinct().count()                                        
+                                        
+#help(users_df.drop_duplicates)                                        
+'''
+dropDuplicates(subset=None) method of pyspark.sql.dataframe.DataFrame instance
+    Return a new :class:`DataFrame` with duplicate rows removed,
+    optionally only considering certain columns.
+    
+    For a static batch :class:`DataFrame`, it just drops duplicate rows. For a streaming
+    :class:`DataFrame`, it will keep all data across triggers as intermediate state to drop
+    duplicates rows. You can use :func:`withWatermark` to limit how late the duplicate data can
+    be and system will accordingly limit the state. In addition, too late data older than
+    watermark will be dropped to avoid any possibility of duplicates.
+    
+    :func:`drop_duplicates` is an alias for :func:`dropDuplicates`.
+    
+    .. versionadded:: 1.4.0
+    
+    Examples
+    --------
+    >>> from pyspark.sql import Row
+    >>> df = sc.parallelize([ \
+    ...     Row(name='Alice', age=5, height=80), \
+    ...     Row(name='Alice', age=5, height=80), \
+    ...     Row(name='Alice', age=10, height=80)]).toDF()
+    >>> df.dropDuplicates().show()
+    +-----+---+------+
+    | name|age|height|
+    +-----+---+------+
+    |Alice|  5|    80|
+    |Alice| 10|    80|
+    +-----+---+------+
+    
+    >>> df.dropDuplicates(['name', 'height']).show()
+    +-----+---+------+
+    | name|age|height|
+    +-----+---+------+
+    |Alice|  5|    80|
+    +-----+---+------+
+'''
+                                        
+# We can also drop duplicates based on certain columns
+# This will fail as the function expects sequence type object such as list or array
+users_df.dropDuplicates('id').show()  #fail                                       
+                                        
+users_df.dropDuplicates(['id']).show()   # this will work                                     
+                                        
+users_df.dropDuplicates(['id', 'amount_paid']).show()                                        
+                                        
+#08 Dropping Null based Records from Spark Data Frames
+'''
+
+Drop records when all column values are nulls.
+Drop records any of the column value is null.
+Drop records that have less than thresh non-null values.
+Drop records when any of the column value or all column values are nulls for provided subset of columns.
+We can use df.na.drop or df.dropna to take care of dealing with records having columns with null values.
+
+'''
+# Attribute which exposes functions dealing with null records
+# drop => users_df.dropna
+# fill => users_df.fillna
+# replace => users_df.replacena
+users_df.na
+                                        
+help(users_df.dropna)                                        
+                                        
+'''
+dropna(how='any', thresh=None, subset=None) method of pyspark.sql.dataframe.DataFrame instance
+    Returns a new :class:`DataFrame` omitting rows with null values.
+    :func:`DataFrame.dropna` and :func:`DataFrameNaFunctions.drop` are aliases of each other.
+    
+    .. versionadded:: 1.3.1
+    
+    Parameters
+    ----------
+    how : str, optional
+        'any' or 'all'.
+        If 'any', drop a row if it contains any nulls.
+        If 'all', drop a row only if all its values are null.
+    thresh: int, optional
+        default None
+        If specified, drop rows that have less than `thresh` non-null values.
+        This overwrites the `how` parameter.
+    subset : str, tuple or list, optional
+        optional list of column names to consider.
+'''
+# Drop if all column value are null                                        
+users_df.na.drop('all').show()
+                                        
+# Drop if any column value is null
+users_df.na.drop('any').show()                                        
+ 
+# Drop column where nonvalue cols are less than 2                                
+users_df.na.drop(thresh=2).show()   
+                                       
+#consider some cols  id, email                                      
+users_df.na.drop(how='all', subset=['id', 'email']).show() 
+                                        
+users_df.na.drop(how='any', subset=['id', 'email']).show() 
+                                        
+                                        
+#Sec 08 Sorting data in DF
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
                                         
                                         

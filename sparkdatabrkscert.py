@@ -2767,3 +2767,112 @@ personsDF. \
 '''
                                         
                                         
+#Sect06: Filtering from df
+
+from pyspark.sql import Row                                        
+import datetime
+                                        
+users = [
+    {
+        "id": 1,
+        "first_name": "Corrie",
+        "last_name": "Van den Oord",
+        "email": "cvandenoord0@etsy.com",
+        "gender": "male",
+        "current_city": "Dallas",
+        "phone_numbers": Row(mobile="+1 234 567 8901", home="+1 234 567 8911"),
+        "courses": [1, 2],
+        "is_customer": True,
+        "amount_paid": 1000.55,
+        "customer_from": datetime.date(2021, 1, 15),
+        "last_updated_ts": datetime.datetime(2021, 2, 10, 1, 15, 0)
+    },
+    {
+        "id": 2,
+        "first_name": "Nikolaus",
+        "last_name": "Brewitt",
+        "email": "nbrewitt1@dailymail.co.uk",
+        "gender": "male",
+        "current_city": "Houston",
+        "phone_numbers":  Row(mobile="+1 234 567 8923", home="1 234 567 8934"),
+        "courses": [3],
+        "is_customer": True,
+        "amount_paid": 900.0,
+        "customer_from": datetime.date(2021, 2, 14),
+        "last_updated_ts": datetime.datetime(2021, 2, 18, 3, 33, 0)
+    },
+    {
+        "id": 3,
+        "first_name": "Orelie",
+        "last_name": "Penney",
+        "email": "openney2@vistaprint.com",
+        "gender": "female",
+        "current_city": "",
+        "phone_numbers": Row(mobile="+1 714 512 9752", home="+1 714 512 6601"),
+        "courses": [2, 4],
+        "is_customer": True,
+        "amount_paid": 850.55,
+        "customer_from": datetime.date(2021, 1, 21),
+        "last_updated_ts": datetime.datetime(2021, 3, 15, 15, 16, 55)
+    },
+    {
+        "id": 4,
+        "first_name": "Ashby",
+        "last_name": "Maddocks",
+        "email": "amaddocks3@home.pl",
+        "gender": "male",
+        "current_city": "San Fransisco",
+        "phone_numbers": Row(mobile=None, home=None),
+        "courses": [],
+        "is_customer": False,
+        "amount_paid": None,
+        "customer_from": None,
+        "last_updated_ts": datetime.datetime(2021, 4, 10, 17, 45, 30)
+    },
+    {
+        "id": 5,
+        "first_name": "Kurt",
+        "last_name": "Rome",
+        "email": "krome4@shutterfly.com",
+        "gender": "female",
+        "current_city": None,
+        "phone_numbers": Row(mobile="+1 817 934 7142", home=None),
+        "courses": [],
+        "is_customer": False,
+        "amount_paid": None,
+        "customer_from": None,
+        "last_updated_ts": datetime.datetime(2021, 4, 2, 0, 55, 18)
+    }
+]                                       
+                                        
+import pandas as pd
+spark.conf.set('spark.sql.execution.arrow.pyspark.enabled', False)
+users_df = spark.createDataFrame(pd.DataFrame(users))
+                                        '''
++---+----------+------------+--------------------+------+-------------+--------------------+-------+-----------+-----------+-------------+-------------------+
+| id|first_name|   last_name|               email|gender| current_city|       phone_numbers|courses|is_customer|amount_paid|customer_from|    last_updated_ts|
++---+----------+------------+--------------------+------+-------------+--------------------+-------+-----------+-----------+-------------+-------------------+
+|  1|    Corrie|Van den Oord|cvandenoord0@etsy...|  male|       Dallas|{+1 234 567 8901,...| [1, 2]|       true|    1000.55|   2021-01-15|2021-02-10 01:15:00|
+|  2|  Nikolaus|     Brewitt|nbrewitt1@dailyma...|  male|      Houston|{+1 234 567 8923,...|    [3]|       true|      900.0|   2021-02-14|2021-02-18 03:33:00|
+|  3|    Orelie|      Penney|openney2@vistapri...|female|             |{+1 714 512 9752,...| [2, 4]|       true|     850.55|   2021-01-21|2021-03-15 15:16:55|
+|  4|     Ashby|    Maddocks|  amaddocks3@home.pl|  male|San Fransisco|        {null, null}|     []|      false|        NaN|         null|2021-04-10 17:45:30|
+|  5|      Kurt|        Rome|krome4@shutterfly...|female|         null|{+1 817 934 7142,...|     []|      false|        NaN|         null|2021-04-02 00:55:18|
++---+----------+------------+--------------------+------+-------------+--------------------+-------+-----------+-----------+-------------+-------------------+
+                                        '''
+                                        
+help(users_df.filter)
+'''
+filter(condition) method of pyspark.sql.dataframe.DataFrame instance
+    Filters rows using the given condition.
+    :func:`where` is an alias for :func:`filter`.
+ condition : :class:`Column` or str
+        a :class:`Column` of :class:`types.BooleanType`
+        or a string of SQL expression.   
+>>> df.filter("age > 3").collect()
+    [Row(age=5, name='Bob')]
+    >>> df.where("age = 2").collect()
+    [Row(age=2, name='Alice')]    
+'''
+#We can pass conditions either by using SQL Style or Non SQL Style.
+from pyspark.sql.functions import col
+                                        

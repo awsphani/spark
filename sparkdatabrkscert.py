@@ -2867,7 +2867,12 @@ filter(condition) method of pyspark.sql.dataframe.DataFrame instance
     :func:`where` is an alias for :func:`filter`.
  condition : :class:`Column` or str
         a :class:`Column` of :class:`types.BooleanType`
-        or a string of SQL expression.   
+        or a string of SQL expression. 
+>>> df.filter(df.age > 3).collect()
+    [Row(age=5, name='Bob')]
+    >>> df.where(df.age == 2).collect()
+    [Row(age=2, name='Alice')]
+    
 >>> df.filter("age > 3").collect()
     [Row(age=5, name='Bob')]
     >>> df.where("age = 2").collect()
@@ -2875,4 +2880,337 @@ filter(condition) method of pyspark.sql.dataframe.DataFrame instance
 '''
 #We can pass conditions either by using SQL Style or Non SQL Style.
 from pyspark.sql.functions import col
+users_df.where(col('id') == 1).show()
+users_df.filter(users_df['id'] == 1).show()
+users_df.where(users_df['id'] == 1).show()
+# 'id == 1' also works
+users_df.filter('id = 1').show()
+'''
+                                        
+    Equal -> = or ==
+    Not Equal -> !=
+    Greater Than -> >
+    Less Than -> <
+    Greater Than or Equal To -> >=
+    Less Than or Equal To -> <=
+    IN Operator -> isin function or IN or contains function
+    Between Operator -> between function or BETWEEN with AND
+
+'''
+#Get list of customers (is_customer flag is set to true)                                        
+users_df.filter(col('is_customer') == True).show()
+users_df.filter(col('is_customer') == 'true').show()                                        
+users_df.filter('is_customer = "true"').show()                                        
+users_df.createOrReplaceTempView('users')                                        
+spark.sql('''SELECT * FROM usersWHERE is_customer = "true"''').show()
+
+#Get users from Dallas
+users_df.filter("current_city == 'Dallas'").show()
+# Get the customers who paid 900.0
+users_df.filter(col('amount_paid') == '900.0').show()
+users_df.filter('amount_paid == "900.0"').show()
+                                        
+#Get the customers where paid amount is not a number
+from pyspark.sql.functions import isnan
+users_df.select('amount_paid', isnan('amount_paid')).show()                                       
+'''
++-----------+------------------+
+|amount_paid|isnan(amount_paid)|
++-----------+------------------+
+|    1000.55|             false|
+|      900.0|             false|
+|     850.55|             false|
+|        NaN|              true|
+|        NaN|              true|
++-----------+------------------+
+'''
+users_df.filter(isnan('amount_paid') == True).show()                                        
+'''
++---+----------+---------+--------------------+------+-------------+--------------------+-------+-----------+-----------+-------------+-------------------+
+| id|first_name|last_name|               email|gender| current_city|       phone_numbers|courses|is_customer|amount_paid|customer_from|    last_updated_ts|
++---+----------+---------+--------------------+------+-------------+--------------------+-------+-----------+-----------+-------------+-------------------+
+|  4|     Ashby| Maddocks|  amaddocks3@home.pl|  male|San Fransisco|        {null, null}|     []|      false|        NaN|         null|2021-04-10 17:45:30|
+|  5|      Kurt|     Rome|krome4@shutterfly...|female|         null|{+1 817 934 7142,...|     []|      false|        NaN|         null|2021-04-02 00:55:18|
++---+----------+---------+--------------------+------+-------------+--------------------+-------+-----------+-----------+-------------+-------------------+
+
+'''
+#Get all the users who are not living in Dallas.
+users_df. \
+    select('id', 'current_city'). \
+    show()   
+                                        '''
++---+-------------+
+| id| current_city|
++---+-------------+
+|  1|       Dallas|
+|  2|      Houston|
+|  3|             |
+|  4|San Fransisco|
+|  5|         null|
++---+-------------+
+'''
+users_df. \
+    select('id', 'current_city'). \
+    filter(col('current_city') != 'Dallas'). \
+    show()
+                                        '''
++---+-------------+
+| id| current_city|
++---+-------------+
+|  2|      Houston|
+|  3|             |
+|  4|San Fransisco|
++---+-------------+
+'''
+users_df. \
+    select('id', 'current_city'). \
+    filter((col('current_city') != 'Dallas') | (col('current_city').isNull())). \
+    show()
+'''
++---+-------------+
+| id| current_city|
++---+-------------+
+|  2|      Houston|
+|  3|             |
+|  4|San Fransisco|
+|  5|         null|
++---+-------------+
+'''
+#sql style same as above result
+users_df. \
+    select('id', 'current_city'). \
+    filter("current_city != 'Dallas' OR current_city IS NULL"). \
+    show()
+                                        
+#Get user id and email whose last updated timestamp is between 2021 Feb 15th and 2021 March 15th.
+users_df. \
+    select('id', 'email', 'last_updated_ts'). \
+    show()
+'''
++---+--------------------+-------------------+
+| id|               email|    last_updated_ts|
++---+--------------------+-------------------+
+|  1|cvandenoord0@etsy...|2021-02-10 01:15:00|
+|  2|nbrewitt1@dailyma...|2021-02-18 03:33:00|
+|  3|openney2@vistapri...|2021-03-15 15:16:55|
+|  4|  amaddocks3@home.pl|2021-04-10 17:45:30|
+|  5|krome4@shutterfly...|2021-04-02 00:55:18|
++---+--------------------+-------------------+
+'''
+c = col('last_updated_ts')
+help(c.between)
+                                        '''
+between(lowerBound, upperBound) method of pyspark.sql.column.Column instance
+    True if the current column is between the lower bound and upper bound, inclusive.
+                                        '''
+users_df. \
+    select('id', 'email', 'last_updated_ts'). \
+    filter(col('last_updated_ts').between('2021-02-15 00:00:00', '2021-03-15 23:59:59')). \
+    show()                                        
+users_df. \
+    select('id', 'email', 'last_updated_ts'). \
+    filter("last_updated_ts BETWEEN '2021-02-15 00:00:00' AND '2021-03-15 23:59:59'"). \
+    show()                                        
+#Get all the users whose payment is in the range of 850 and 900.
+users_df. \
+    select('id', 'amount_paid'). \
+    filter(col('amount_paid').between(850, 900)). \
+    show()
+                                        
+users_df. \
+    select('id', 'amount_paid'). \
+    filter('amount_paid BETWEEN "850" AND "900"'). \
+    show()                                        
+
+#08 Dealing with Null Values while Filtering Data in Spark Data Frames
+users_df. \
+    select('id', 'current_city'). \
+    filter(col('current_city').isNotNull()). \
+    show()     
+                                       
+users_df. \
+    select('id', 'current_city'). \
+    filter('current_city IS NOT NULL'). \
+    show()
+'''
++---+-------------+
+| id| current_city|
++---+-------------+
+|  1|       Dallas|
+|  2|      Houston|
+|  3|             |
+|  4|San Fransisco|
++---+-------------+
+
+'''
+#Get all the users whose city is null                                        
+users_df. \
+    select('id', 'current_city'). \
+    filter(col('current_city').isNull()). \
+    show()                                       
+users_df. \
+    select('id', 'current_city'). \
+    filter('current_city IS NULL'). \
+    show()
+                                        
+'''
+Boolean Operations
+    Boolean OR
+    Boolean AND
+    Negation NOT
+Get list of users whose city is null or empty string (users with no cities associated)    
+'''
+users_df. \
+    select('id', 'current_city'). \
+    filter((col('current_city') == '') | (col('current_city').isNull())). \
+    show()          
+                                        
+# this will fail because conditions are not enclosed in circular brackets
+users_df. \
+    select('id', 'current_city'). \
+    filter(col('current_city') == '' | (col('current_city').isNull())). \
+    show()                                        
+                                        
+users_df. \
+    select('id', 'current_city'). \
+    filter("current_city = '' OR current_city IS NULL"). \
+    show()                                      
+                                        
+
+    #Get list of users whose city is either Houston or Dallas.
+users_df. \
+    select('id', 'current_city'). \
+    filter(col('current_city').isin('Houston', 'Dallas')). \
+    show()
+                                        
+users_df. \
+    select('id', 'current_city'). \
+    filter("current_city IN ('Houston', 'Dallas')"). \
+    show()                                        
+                                        
+# Boolean OR including null check
+users_df. \
+    select('id', 'current_city'). \
+    filter((col('current_city').isin('Houston', 'Dallas', '')) | (col('current_city').isNull())). \
+    show()
+                                        
+users_df. \
+    select('id', 'current_city'). \
+    filter("current_city IN ('Houston', 'Dallas', '') OR current_city IS NULL"). \
+    show()
+                                        
+'''
++---+------------+
+| id|current_city|
++---+------------+
+|  1|      Dallas|
+|  2|     Houston|
+|  3|            |
+|  5|        null|
++---+------------+
+
+'''
+#Get Customers who paid greater than 900                                        
+from pyspark.sql.functions import col, isnan
+                                        
+users_df. \
+    select('id', 'amount_paid'). \
+    show()
+'''
++---+-----------+
+| id|amount_paid|
++---+-----------+
+|  1|    1000.55|
+|  2|      900.0|
+|  3|     850.55|
+|  4|        NaN|
+|  5|        NaN|
++---+-----------+
+'''
+                                        
+users_df. \
+    filter((col('amount_paid') > 900) & (isnan(col('amount_paid')) == False)). \
+    select('id', 'amount_paid'). \
+    show()
+
+users_df. \
+    filter('amount_paid > 900 AND isnan(amount_paid) = false'). \
+    select('id', 'amount_paid'). \
+    show()                                        
+'''
++---+-----------+
+| id|amount_paid|
++---+-----------+
+|  1|    1000.55|
++---+-----------+
+'''
+#Get the users who became customers after 2021-01-21
+users_df. \
+    select('id', 'customer_from'). \
+    filter(col('customer_from') > '2021-01-21'). \
+    show()
+                                        
+users_df. \
+    select('id', 'customer_from'). \
+    filter('customer_from > "2021-01-21"').show()
+                                        
+                                        
+#Get Male Customers (gender is male and is_customer is equals to true)                                        
+users_df. \
+    filter((col('gender') == 'male') & (col('is_customer') == True)). \
+    select('id', 'gender', 'is_customer'). \
+    show()                                        
+users_df. \
+    filter("gender = 'male' AND is_customer = true"). \
+    select('id', 'gender', 'is_customer'). \
+    show()                                        
+                                        
+#Get the users who become customers between 2021 Jan 20th and 2021 Feb 15th.                                        
+users_df. \
+    filter((col('customer_from') >= '2021-01-20') & (col('customer_from') <= '2021-02-15')). \
+    select('id', 'customer_from'). \
+    show()                                       
+users_df. \
+    filter("customer_from >= '2021-01-20' AND customer_from  <= '2021-02-15'"). \
+    select('id', 'customer_from'). \
+    show()                                        
+                                        
+#Get id and email of users who are not customers or city contain empty string.
+                                        
+users_df. \
+    filter((col('current_city') == '') | (col('is_customer') == False)). \
+    select('id', 'email', 'current_city', 'is_customer'). \
+    show()
+                                        
+users_df. \
+    filter("current_city = '' OR is_customer = false"). \
+    select('id', 'email', 'current_city', 'is_customer'). \
+    show()
+                                        
+                                        
+#Get id and email of users who are not customers or customers whose last updated time is before 2021-03-01
+                                        
+users_df. \
+    filter((col('is_customer') == False) | (col('last_updated_ts') < '2021-03-01')). \
+    select('id', 'email', 'is_customer', 'last_updated_ts'). \
+    show()
+                                        
+users_df. \
+    filter("is_customer = false OR last_updated_ts < '2021-03-01'"). \
+    select('id', 'email', 'is_customer', 'last_updated_ts'). \
+    show()
+                                        
+'''
++---+--------------------+-----------+-------------------+
+| id|               email|is_customer|    last_updated_ts|
++---+--------------------+-----------+-------------------+
+|  1|cvandenoord0@etsy...|       true|2021-02-10 01:15:00|
+|  2|nbrewitt1@dailyma...|       true|2021-02-18 03:33:00|
+|  4|  amaddocks3@home.pl|      false|2021-04-10 17:45:30|
+|  5|krome4@shutterfly...|      false|2021-04-02 00:55:18|
++---+--------------------+-----------+-------------------+
+
+'''
+                                        
+                                        
                                         
